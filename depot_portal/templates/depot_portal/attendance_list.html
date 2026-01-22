@@ -1,0 +1,1950 @@
+{% extends 'depot_portal/base.html' %}
+
+{% block title %}Attendance - KSRTC Depot Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container-fluid {
+        padding: 0;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .main-wrapper {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        margin: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 24px 32px;
+        border-radius: 20px;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(30, 60, 114, 0.3);
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
+        opacity: 0.1;
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        letter-spacing: -0.02em;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+        margin-top: 8px;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        border-radius: 20px 20px 0 0;
+    }
+
+    .stat-card.present::before {
+        background: linear-gradient(90deg, #10b981, #059669);
+    }
+
+    .stat-card.absent::before {
+        background: linear-gradient(90deg, #ef4444, #dc2626);
+    }
+
+    .stat-card.late::before {
+        background: linear-gradient(90deg, #f59e0b, #d97706);
+    }
+    
+    .stat-card.half-day::before {
+        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    }
+
+    .stat-icon {
+        font-size: 2.2rem;
+        margin-bottom: 16px;
+        color: #4f46e5;
+        opacity: 0.9;
+    }
+
+    .stat-card.present .stat-icon { 
+        color: #10b981; 
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+    
+    .stat-card.absent .stat-icon { 
+        color: #ef4444; 
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+    
+    .stat-card.late .stat-icon { 
+        color: #f59e0b; 
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1));
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+    
+    .stat-card.half-day .stat-icon { 
+        color: #3b82f6; 
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(29, 78, 216, 0.1));
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+
+    .stat-card:first-child .stat-icon { 
+        color: #4f46e5; 
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(124, 58, 237, 0.1));
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+
+    .stat-number {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #1f2937;
+        margin: 12px 0;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+
+    .search-filter-section {
+        background: white;
+        padding: 32px;
+        border-radius: 20px;
+        margin-bottom: 40px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .search-box {
+        position: relative;
+        margin-bottom: 28px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 16px 24px 16px 56px;
+        border: 2px solid #e5e7eb;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #f9fafb;
+        font-weight: 500;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        background: white;
+        transform: translateY(-1px);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 1.2rem;
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .filter-btn {
+        padding: 12px 24px;
+        border: 2px solid transparent;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .filter-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        transition: left 0.5s;
+    }
+
+    .filter-btn:hover::before {
+        left: 100%;
+    }
+
+    .filter-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .filter-btn.active {
+        background: #4f46e5;
+        color: white;
+        border-color: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+    }
+
+    .filter-btn.btn-outline-success.active {
+        background: #10b981;
+        border-color: #10b981;
+    }
+
+    .filter-btn.btn-outline-danger.active {
+        background: #ef4444;
+        border-color: #ef4444;
+    }
+
+    .filter-btn.btn-outline-warning.active {
+        background: #f59e0b;
+        border-color: #f59e0b;
+    }
+
+    .filter-btn.btn-outline-info.active {
+        background: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .main-content {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .content-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 24px 40px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .content-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .table-container {
+        padding: 40px;
+        overflow: visible;
+    }
+
+    .table-responsive {
+        overflow: visible !important;
+    }
+    
+    /* Ensure proper dropdown positioning in tables */
+    .table-responsive .dropdown {
+        position: static !important;
+    }
+    
+    .table-responsive .dropdown-menu {
+        position: absolute !important;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 0;
+        font-size: 0.95rem;
+        border-radius: 12px;
+        overflow: visible;
+    }
+
+    .modern-table th {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 20px;
+        text-align: left;
+        font-weight: 700;
+        color: #374151;
+        border-bottom: 2px solid #e5e7eb;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .modern-table td {
+        padding: 20px;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+        position: relative;
+    }
+    
+    /* Specific styling for action column */
+    .modern-table td:last-child {
+        overflow: visible;
+        position: relative;
+    }
+    
+    /* Ensure action buttons container allows dropdown overflow */
+    .modern-table .action-buttons {
+        position: relative;
+        overflow: visible;
+    }
+
+    .modern-table tbody tr:hover {
+        background: #f8fafc;
+        transform: scale(1.005);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .modern-table tbody tr:nth-child(even) {
+        background: #fafbfc;
+    }
+
+    .modern-table tbody tr:nth-child(even):hover {
+        background: #f1f5f9;
+    }
+
+    .employee-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .employee-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        border: 3px solid white;
+    }
+
+    .employee-details h6 {
+        margin: 0;
+        font-weight: 700;
+        color: #1f2937;
+        font-size: 1rem;
+    }
+
+    .employee-details small {
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: 2px solid transparent;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badge.present {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #166534;
+        border-color: #10b981;
+    }
+
+    .status-badge.absent {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: #991b1b;
+        border-color: #ef4444;
+    }
+
+    .status-badge.late {
+        background: linear-gradient(135deg, #fef3c7, #fed7aa);
+        color: #92400e;
+        border-color: #f59e0b;
+    }
+
+    .status-badge.half-day {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #1e40af;
+        border-color: #3b82f6;
+    }
+
+    .time-display {
+        font-weight: 600;
+        color: #2c3e50;
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 8px;
+        display: inline-block;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .time-display.empty {
+        color: #7f8c8d;
+        font-style: italic;
+    }
+
+    .assignment-info {
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    .assignment-info .schedule {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .assignment-info .route {
+        color: #7f8c8d;
+        font-size: 0.8rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        position: relative;
+    }
+    
+    .action-buttons .dropdown {
+        position: relative;
+    }
+
+    .btn-action {
+        padding: 8px 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background: white;
+        color: #6c757d;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-action:hover {
+        background: #3498db;
+        color: white;
+        border-color: #3498db;
+        transform: translateY(-1px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #7f8c8d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .empty-state h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        margin-bottom: 30px;
+        font-size: 1.1rem;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #3498db, #2ecc71);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 25px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-primary-custom:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .modal-body {
+        overflow-y: auto;
+        max-height: calc(90vh - 200px);
+        padding: 20px;
+    }
+    
+    /* Custom scrollbar */
+    .modal-body::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .modal-body::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    .modal-body::-webkit-scrollbar-thumb {
+        background: #3498db;
+        border-radius: 4px;
+    }
+    
+    .modal-body::-webkit-scrollbar-thumb:hover {
+        background: #2980b9;
+    }
+    
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #dee2e6;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .modal-footer .btn {
+        pointer-events: auto;
+        cursor: pointer;
+        z-index: 1;
+        position: relative;
+    }
+    
+    .modal-footer a.btn {
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    /* Expandable details section */
+    .details-row {
+        background: #f8f9fa !important;
+        border-top: 2px solid #3498db;
+    }
+    
+    .details-content {
+        padding: 0 !important;
+        border: none !important;
+    }
+    
+    .details-container {
+        background: white;
+        border-radius: 8px;
+        margin: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .details-header {
+        background: linear-gradient(135deg, #3498db, #2ecc71);
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .details-header h6 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .btn-close-details {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        margin-left: auto;
+    }
+    
+    .btn-close-details:hover {
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        padding: 4px 8px;
+    }
+    
+    .details-body {
+        padding: 20px;
+    }
+    
+    .detail-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .trips-section h6 {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .trip-card-simple {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .trip-card-simple:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 20px 30px;
+    }
+
+    .modal-title {
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .info-grid .label {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .info-grid .value {
+        color: #7f8c8d;
+    }
+
+    .schedule-compact {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px;
+    }
+
+    .schedule-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .schedule-title {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 0.9rem;
+    }
+
+    .trips-count {
+        color: #6b7280;
+        font-size: 0.75rem;
+    }
+
+    .status-dots {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-dot.status-present {
+        background: #10b981;
+    }
+
+    .status-dot.status-absent {
+        background: #ef4444;
+    }
+
+    .status-dot.status-late {
+        background: #f59e0b;
+    }
+
+    .status-dot.status-half_day {
+        background: #3b82f6;
+    }
+
+    .details-btn {
+        border: none !important;
+        background: transparent !important;
+        color: #6b7280 !important;
+        padding: 4px 8px !important;
+        font-size: 0.8rem !important;
+    }
+
+    .details-btn:hover {
+        background: #f3f4f6 !important;
+        color: #374151 !important;
+    }
+
+    /* Bootstrap dropdown fixes */
+    .table-responsive {
+        overflow: visible !important;
+    }
+
+    .schedule-compact .dropdown {
+        position: static !important;
+    }
+
+    .schedule-compact .dropdown-menu {
+        position: absolute !important;
+        z-index: 1050 !important;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-100%) !important;
+        top: 0 !important;
+        margin-top: -8px !important;
+        inset: auto auto auto 0 !important;
+    }
+    
+    /* Special handling for first row dropdown - show overlapping on table */
+    .modern-table tbody tr:first-child .schedule-compact .dropdown {
+        position: static !important;
+    }
+    
+    .modern-table tbody tr:first-child .schedule-compact .dropdown-menu {
+        position: absolute !important;
+        z-index: 10000 !important;
+        transform: translateY(10px) !important;
+        top: 100% !important;
+        margin-top: 0 !important;
+        inset: auto auto auto 0 !important;
+    }
+    
+    /* Ensure table content stays below custom popup */
+    .modern-table {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .modern-table tbody tr {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Custom popup specific styles */
+    .custom-popup {
+        position: fixed !important;
+        z-index: 999999 !important;
+        background: white !important;
+        border: 2px solid #007bff !important;
+        border-radius: 8px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+        padding: 0 !important;
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+        min-width: 300px !important;
+        max-width: 400px !important;
+    }
+    
+    /* Reset Actions column dropdown positioning - allow Bootstrap defaults */
+    .action-buttons .dropdown-menu {
+        position: absolute;
+        z-index: 1000;
+        min-width: 10rem;
+        padding: 0.5rem 0;
+        margin: 0.125rem 0 0;
+        font-size: 1rem;
+        color: #212529;
+        text-align: left;
+        list-style: none;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Show dropdown when active */
+    .action-buttons .dropdown.show .dropdown-menu {
+        display: block;
+    }
+    
+    /* Ensure dropdown items have proper styling */
+    .action-buttons .dropdown-item {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 1rem;
+        clear: both;
+        font-weight: 400;
+        color: #212529;
+        text-align: inherit;
+        text-decoration: none;
+        white-space: nowrap;
+        background-color: transparent;
+        border: 0;
+    }
+    
+    .action-buttons .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #1e2125;
+    }
+    
+    /* Custom scrollbar for popup */
+    .custom-popup::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .custom-popup::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .custom-popup::-webkit-scrollbar-thumb {
+        background: #007bff;
+        border-radius: 3px;
+    }
+    
+    .custom-popup::-webkit-scrollbar-thumb:hover {
+        background: #0056b3;
+    }
+
+    .dropdown-header.bg-primary {
+        background-color: #0d6efd !important;
+        color: white !important;
+        padding: 0.5rem 1rem !important;
+        margin-bottom: 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
+
+    .trip-details-popup {
+        position: fixed !important;
+        background: white !important;
+        border: 2px solid #3b82f6 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+        z-index: 999999 !important;
+        min-width: 280px !important;
+        max-width: 320px !important;
+        max-height: 400px !important;
+        overflow-y: auto !important;
+        display: none !important;
+    }
+
+    .popup-header {
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 12px 16px;
+        font-size: 0.85rem;
+        color: #1f2937;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-close-popup {
+        background: none;
+        border: none;
+        color: #6b7280;
+        font-size: 0.8rem;
+        cursor: pointer;
+        padding: 2px;
+        border-radius: 4px;
+    }
+
+    .btn-close-popup:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .popup-item {
+        padding: 12px 16px;
+        border: none;
+        background: white;
+    }
+
+    .popup-item:hover {
+        background: #f8fafc;
+    }
+
+    .popup-divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 0;
+    }
+
+    .modern-table tbody tr {
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: white;
+    }
+
+    .modern-table tbody tr td {
+        position: relative;
+        overflow: visible;
+    }
+
+    .trip-detail-inline {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .trip-basic-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .trip-label {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 0.85rem;
+    }
+
+    .route-label {
+        color: #6b7280;
+        font-size: 0.75rem;
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .trip-status-inline {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badge-tiny {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .status-badge-tiny.status-present {
+        background: #10b981;
+    }
+
+    .status-badge-tiny.status-absent {
+        background: #ef4444;
+    }
+
+    .status-badge-tiny.status-late {
+        background: #f59e0b;
+    }
+
+    .status-badge-tiny.status-half_day {
+        background: #3b82f6;
+    }
+
+    .status-text {
+        font-size: 0.8rem;
+        color: #374151;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+    .trip-times-inline {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .time-badge {
+        background: #f3f4f6;
+        color: #6b7280;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .time-badge.time-in {
+        color: #059669;
+        background: #ecfdf5;
+    }
+
+    .time-badge.time-out {
+        color: #dc2626;
+        background: #fef2f2;
+    }
+
+    .time-badge i {
+        font-size: 0.65rem;
+    }
+
+    .status-badge-small {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .status-badge-small.status-present {
+        background: #10b981;
+        color: white;
+    }
+
+    .status-badge-small.status-absent {
+        background: #ef4444;
+        color: white;
+    }
+
+    .status-badge-small.status-late {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .status-badge-small.status-half_day {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .trip-times {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .time-in, .time-out {
+        color: #6b7280;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .time-in i {
+        color: #10b981;
+    }
+
+    .time-out i {
+        color: #ef4444;
+    }
+
+    .trips-detail-section {
+        margin-top: 20px;
+    }
+
+    .section-title {
+        color: #1f2937;
+        font-weight: 700;
+        font-size: 1.1rem;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 8px;
+    }
+
+    .trip-detail-card {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .trip-detail-card.status-present {
+        border-color: #10b981;
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    }
+
+    .trip-detail-card.status-absent {
+        border-color: #ef4444;
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    }
+
+    .trip-detail-card.status-late {
+        border-color: #f59e0b;
+        background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    }
+
+    .trip-detail-card.status-half_day {
+        border-color: #3b82f6;
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    }
+
+    .trip-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .trip-title {
+        font-weight: 700;
+        color: #1f2937;
+        font-size: 1rem;
+    }
+
+    .route-title {
+        color: #6b7280;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .status-badge-modal {
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badge-modal.status-present {
+        background: #10b981;
+        color: white;
+    }
+
+    .status-badge-modal.status-absent {
+        background: #ef4444;
+        color: white;
+    }
+
+    .status-badge-modal.status-late {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .status-badge-modal.status-half_day {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .trip-times-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .time-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #374151;
+        font-size: 0.9rem;
+    }
+
+    .time-item i {
+        width: 16px;
+    }
+
+    @media (max-width: 768px) {
+        .main-wrapper {
+            margin: 10px;
+            padding: 20px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-buttons {
+            flex-direction: column;
+        }
+
+        .filter-btn {
+            text-align: center;
+        }
+
+        .modern-table {
+            font-size: 0.85rem;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 10px;
+        }
+
+        .employee-info {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .schedule-compact {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 6px;
+        }
+
+        .status-dots {
+            gap: 3px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+        }
+
+        .dropdown-menu-wide {
+            min-width: 250px;
+            max-width: 280px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="main-wrapper">
+        <!-- Modern Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-title">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        Attendance Records
+                    </h1>
+                    <p class="page-subtitle">Track and manage employee attendance efficiently</p>
+                </div>
+                <div>
+                    <a href="{% url 'depot_portal:attendance_mark' %}" class="btn-primary-custom">
+                        <i class="fas fa-plus me-1"></i>
+                        Mark Attendance
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modern Statistics Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="stat-number">{{ stats.total_records }}</div>
+                <div class="stat-label">Total Records</div>
+            </div>
+            
+            <div class="stat-card present">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number" id="present-count">
+                    {{ stats.present_count }}
+                </div>
+                <div class="stat-label">Present</div>
+            </div>
+            
+            <div class="stat-card absent">
+                <div class="stat-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-number" id="absent-count">{{ stats.absent_count }}</div>
+                <div class="stat-label">Absent</div>
+            </div>
+            
+            <div class="stat-card late">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number" id="late-count">{{ stats.late_count }}</div>
+                <div class="stat-label">Late</div>
+            </div>
+            
+            <div class="stat-card half-day">
+                <div class="stat-icon">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <div class="stat-number" id="half-day-count">{{ stats.half_day_count }}</div>
+                <div class="stat-label">Half Day</div>
+            </div>
+        </div>
+
+        <!-- Modern Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <h3 class="content-title">
+                    <i class="fas fa-list me-2"></i>
+                    All Attendance Records
+                    <small class="text-muted ms-3">{{ attendance_records.count }} total records</small>
+                </h3>
+            </div>
+
+            <div class="table-container">
+                {% if attendance_records %}
+                    <div class="table-responsive">
+                        <table class="modern-table" id="attendanceTable">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-calendar-day me-2"></i>Date</th>
+                                    <th><i class="fas fa-user me-2"></i>Employee</th>
+                                    <th><i class="fas fa-route me-2"></i>Schedule & Trips</th>
+                                    <th><i class="fas fa-user-check me-2"></i>Marked By</th>
+                                    <th><i class="fas fa-cog me-2"></i>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in attendance_records %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ record.date|date:"M d, Y" }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ record.date|date:"l" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="employee-info">
+                                            <div class="employee-avatar">
+                                                {{ record.employee.employee_name|first|upper }}
+                                            </div>
+                                            <div class="employee-details">
+                                                <h6>{{ record.employee.employee_name }}</h6>
+                                                <small>{{ record.employee.employee_id }} • {{ record.employee.get_role_display }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="schedule-compact">
+                                            <div class="schedule-summary">
+                                                <span class="schedule-title">{{ record.schedule_no }}</span>
+                                                <span class="trips-count">{{ record.trips|length }} trip{{ record.trips|length|pluralize }}</span>
+                                            </div>
+                                            <div class="status-dots">
+                                                {% for trip in record.trips %}
+                                                    <span class="status-dot status-{{ trip.status }}" title="Trip {{ trip.trip_no }}: {{ trip.status|capfirst }}"></span>
+                                                {% endfor %}
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary details-btn custom-popup-btn" 
+                                                        type="button" 
+                                                        onclick="showCustomPopup(this, '{{ record.schedule_no }}', {{ forloop.counter0 }})"
+                                                        data-trips='[{% for trip in record.trips %}{"trip_no": "{{ trip.trip_no }}", "route_no": "{{ trip.route_no }}", "status": "{{ trip.status }}", "check_in_time": "{% if trip.check_in_time %}{{ trip.check_in_time|time:"H:i" }}{% endif %}", "check_out_time": "{% if trip.check_out_time %}{{ trip.check_out_time|time:"H:i" }}{% endif %}", "attendance_id": "{{ trip.attendance_id }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+                                                    <i class="fas fa-info-circle"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>{{ record.marked_by.full_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ record.created_at|date:"M d, H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-primary btn-sm" 
+                                                    onclick="toggleDetails{{ record.attendance_ids.0 }}()"
+                                                    id="detailsBtn{{ record.attendance_ids.0 }}">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                View Details
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Expandable Details Section -->
+                                <tr id="detailsRow{{ record.attendance_ids.0 }}" class="details-row" style="display: none;">
+                                    <td colspan="5" class="details-content">
+                                        <div class="details-container">
+                                            <div class="details-header">
+                                                <h6><i class="fas fa-clipboard-check me-2"></i>Attendance Details</h6>
+                                                <button type="button" class="btn-close-details" onclick="hideDetails{{ record.attendance_ids.0 }}()">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="details-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="detail-item">
+                                                            <strong>Employee:</strong> {{ record.employee.employee_name }} ({{ record.employee.employee_id }})
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <strong>Role:</strong> {{ record.employee.get_role_display }}
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <strong>Date:</strong> {{ record.date|date:"F d, Y (l)" }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="detail-item">
+                                                            <strong>Schedule:</strong> {{ record.schedule_no }}
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <strong>Marked By:</strong> {{ record.marked_by.full_name }}
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <strong>Recorded:</strong> {{ record.created_at|date:"M d, Y H:i" }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="trips-section mt-3">
+                                                    <h6><i class="fas fa-route me-2"></i>Trip Details</h6>
+                                                    <div class="row">
+                                                        {% for trip in record.trips %}
+                                                            <div class="col-md-6 mb-3">
+                                                                <div class="trip-card-simple">
+                                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                                        <strong>Trip {{ trip.trip_no }}</strong>
+                                                                        <span class="status-badge status-{{ trip.status }}">{{ trip.status|capfirst }}</span>
+                                                                    </div>
+                                                                    {% if trip.route_no != 'N/A' %}
+                                                                        <div><small>Route: {{ trip.route_no }}</small></div>
+                                                                    {% endif %}
+                                                                    {% if trip.check_in_time %}
+                                                                        <div><small><i class="fas fa-sign-in-alt text-success me-1"></i>In: {{ trip.check_in_time|time:"H:i" }}</small></div>
+                                                                    {% endif %}
+                                                                    {% if trip.check_out_time %}
+                                                                        <div><small><i class="fas fa-sign-out-alt text-danger me-1"></i>Out: {{ trip.check_out_time|time:"H:i" }}</small></div>
+                                                                    {% endif %}
+                                                                    <div class="mt-2">
+                                                                        <a href="{% url 'depot_portal:attendance_edit' trip.attendance_id %}" 
+                                                                           class="btn btn-outline-primary btn-sm">
+                                                                            <i class="fas fa-edit me-1"></i>Edit Trip {{ trip.trip_no }}
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-check"></i>
+                        <h4>No Attendance Records Found</h4>
+                        <p>Start marking attendance to see records here. Track employee attendance efficiently.</p>
+                        <a href="{% url 'depot_portal:attendance_mark' %}" class="btn-primary-custom">
+                            <i class="fas fa-plus"></i>
+                            Mark Attendance
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Custom Popup for First Row - Outside Table -->
+        <div class="custom-popup" id="custom-popup-modal" style="display: none; position: fixed; z-index: 999999; background: white; border: 2px solid #007bff; border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.25); min-width: 300px; max-width: 400px; max-height: 80vh; overflow-y: auto;">
+            <div class="dropdown-header bg-primary text-white" id="popup-header">
+                <strong>Schedule - Trip Details</strong>
+            </div>
+            <div id="popup-content">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+        <div class="custom-popup-overlay" onclick="hideCustomPopup()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99998; background: rgba(0,0,0,0.5);"></div>
+
+        <!-- Search and Filter Controls -->
+        <div class="search-filter-section">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Search by employee name or ID..." 
+                               id="attendanceSearch" value="{{ current_employee_filter|default:'' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" class="form-control" id="dateFilter" placeholder="Filter by date" 
+                           value="{{ current_date_filter|default:'' }}" style="padding: 16px; border-radius: 50px; border: 2px solid #e5e7eb;">
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()" 
+                            style="padding: 16px; border-radius: 50px;">
+                        <i class="fas fa-eraser"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filter-buttons">
+                <a href="?status=present{% if current_date_filter %}&date={{ current_date_filter }}{% endif %}{% if current_employee_filter %}&employee={{ current_employee_filter }}{% endif %}" 
+                   class="filter-btn btn-outline-success {% if current_status_filter == 'present' %}active{% endif %}">
+                    <i class="fas fa-check-circle"></i>
+                    Present
+                </a>
+                <a href="?status=absent{% if current_date_filter %}&date={{ current_date_filter }}{% endif %}{% if current_employee_filter %}&employee={{ current_employee_filter }}{% endif %}" 
+                   class="filter-btn btn-outline-danger {% if current_status_filter == 'absent' %}active{% endif %}">
+                    <i class="fas fa-times-circle"></i>
+                    Absent
+                </a>
+                <a href="?status=late{% if current_date_filter %}&date={{ current_date_filter }}{% endif %}{% if current_employee_filter %}&employee={{ current_employee_filter }}{% endif %}" 
+                   class="filter-btn btn-outline-warning {% if current_status_filter == 'late' %}active{% endif %}">
+                    <i class="fas fa-clock"></i>
+                    Late
+                </a>
+                <a href="?status=half_day{% if current_date_filter %}&date={{ current_date_filter }}{% endif %}{% if current_employee_filter %}&employee={{ current_employee_filter }}{% endif %}" 
+                   class="filter-btn btn-outline-info {% if current_status_filter == 'half_day' %}active{% endif %}">
+                    <i class="fas fa-user-clock"></i>
+                    Half Day
+                </a>
+                <a href="{% url 'depot_portal:attendance_list' %}" 
+                   class="filter-btn btn-outline-secondary {% if not current_status_filter %}active{% endif %}">
+                    <i class="fas fa-list"></i>
+                    All Records
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Enhanced Search Functionality and Statistics Calculation
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('attendanceSearch');
+    const table = document.getElementById('attendanceTable');
+    
+    // Statistics are now calculated server-side for accuracy
+    
+    // Enhanced search and filter functionality
+    const dateFilter = document.getElementById('dateFilter');
+    
+    // Function to apply filters via URL
+    function applyFilters() {
+        const searchTerm = searchInput.value.trim();
+        const dateValue = dateFilter.value;
+        
+        const params = new URLSearchParams(window.location.search);
+        
+        // Update or remove parameters
+        if (searchTerm) {
+            params.set('employee', searchTerm);
+        } else {
+            params.delete('employee');
+        }
+        
+        if (dateValue) {
+            params.set('date', dateValue);
+        } else {
+            params.delete('date');
+        }
+        
+        // Navigate to new URL
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    }
+    
+    // Search functionality with debounce
+    let searchTimeout;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                applyFilters();
+            }, 500); // 500ms debounce
+        });
+    }
+    
+    // Date filter functionality
+    if (dateFilter) {
+        dateFilter.addEventListener('change', function() {
+            applyFilters();
+        });
+    }
+    
+    // Client-side search for immediate feedback (while typing)
+    if (searchInput && table) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            let visibleCount = 0;
+            
+            Array.from(rows).forEach(function(row) {
+                const employeeName = row.cells[1].textContent.toLowerCase();
+                const employeeId = row.cells[1].textContent.toLowerCase();
+                const status = row.cells[2].textContent.toLowerCase();
+                const assignment = row.cells[5].textContent.toLowerCase();
+                const markedBy = row.cells[6].textContent.toLowerCase();
+                
+                const isVisible = employeeName.includes(searchTerm) || 
+                                employeeId.includes(searchTerm) || 
+                                status.includes(searchTerm) || 
+                                assignment.includes(searchTerm) || 
+                                markedBy.includes(searchTerm);
+                
+                if (isVisible) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Update record count
+            const recordCountElement = document.querySelector('.content-title small');
+            if (recordCountElement) {
+                recordCountElement.textContent = `${visibleCount} total records`;
+            }
+        });
+    }
+    
+    // Clear all filters function
+    window.clearFilters = function() {
+        window.location.href = "{% url 'depot_portal:attendance_list' %}";
+    };
+    
+    // Add smooth animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+    
+    document.querySelectorAll('.stat-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+        observer.observe(card);
+    });
+    
+    // Add hover effects to table rows
+    const tableRows = document.querySelectorAll('#attendanceTable tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.01)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+    
+    // Custom popup functions for all rows
+    window.showCustomPopup = function(button, scheduleNo, rowIndex) {
+        // Hide any existing popups
+        hideCustomPopup();
+        
+        const popup = document.getElementById('custom-popup-modal');
+        const overlay = document.querySelector('.custom-popup-overlay');
+        const header = document.getElementById('popup-header');
+        const content = document.getElementById('popup-content');
+        
+        if (popup && overlay) {
+            // Update header
+            header.innerHTML = `<strong>${scheduleNo} - Trip Details</strong>`;
+            
+            try {
+                // Get real trip data from data attribute
+                const tripsData = JSON.parse(button.getAttribute('data-trips'));
+                
+                // Create content based on real trip data
+                let tripContent = '';
+                tripsData.forEach(trip => {
+                    // Determine badge class based on status
+                    let badgeClass = 'bg-success';
+                    if (trip.status === 'absent') badgeClass = 'bg-danger';
+                    else if (trip.status === 'late') badgeClass = 'bg-warning';
+                    else if (trip.status === 'half_day') badgeClass = 'bg-info';
+                    
+                    // Build time display
+                    let timeDisplay = '';
+                    if (trip.check_in_time) {
+                        timeDisplay += `<i class="fas fa-sign-in-alt text-success"></i> In: ${trip.check_in_time}`;
+                    }
+                    if (trip.check_out_time) {
+                        timeDisplay += ` <i class="fas fa-sign-out-alt text-danger ms-2"></i> Out: ${trip.check_out_time}`;
+                    }
+                    if (!trip.check_in_time && !trip.check_out_time) {
+                        timeDisplay = '<i class="fas fa-exclamation-triangle text-warning"></i> No times recorded';
+                    }
+                    
+                    tripContent += `
+                        <div class="dropdown-item-text p-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong>Trip ${trip.trip_no}</strong>
+                                    ${trip.route_no !== 'N/A' ? `<span class="badge bg-secondary ms-2">${trip.route_no}</span>` : ''}
+                                </div>
+                                <span class="badge ${badgeClass}">${trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}</span>
+                            </div>
+                            <div class="small text-muted mb-2">
+                                ${timeDisplay}
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="editAttendance('${trip.attendance_id}')" title="Edit">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = tripContent;
+            } catch (e) {
+                console.error('Error parsing trip data:', e);
+                content.innerHTML = '<div class="p-3">Error loading trip data</div>';
+            }
+            
+            // Center the popup in the screen like a modal
+            popup.style.left = '50%';
+            popup.style.top = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+    };
+    
+    window.hideCustomPopup = function() {
+        const popup = document.getElementById('custom-popup-modal');
+        const overlay = document.querySelector('.custom-popup-overlay');
+        
+        if (popup) popup.style.display = 'none';
+        if (overlay) overlay.style.display = 'none';
+    };
+    
+    // Edit attendance function
+    window.editAttendance = function(attendanceId) {
+        // Hide the popup first
+        hideCustomPopup();
+        // Redirect to edit page
+        window.location.href = `/depot/attendance/edit/${attendanceId}/`;
+    };
+    
+    // Close popup when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.custom-popup') && !event.target.closest('.custom-popup-btn')) {
+            hideCustomPopup();
+        }
+    });
+    
+    // Handle Actions dropdown positioning
+    document.addEventListener('show.bs.dropdown', function (event) {
+        const dropdown = event.target;
+        const dropdownMenu = dropdown.nextElementSibling;
+        
+        // Only handle Actions column dropdowns
+        if (dropdown.closest('.action-buttons')) {
+            const rect = dropdown.getBoundingClientRect();
+            const dropdownHeight = 150; // Approximate dropdown height
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            
+            // Position based on available space
+            if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+                // Not enough space below, show above
+                dropdownMenu.style.transform = 'translateY(-100%)';
+                dropdownMenu.style.top = '0';
+                dropdownMenu.style.marginTop = '-8px';
+            } else {
+                // Default: show below
+                dropdownMenu.style.transform = 'none';
+                dropdownMenu.style.top = '100%';
+                dropdownMenu.style.marginTop = '8px';
+            }
+        }
+    });
+    
+    // Toggle details functions
+    {% for record in attendance_records %}
+    window.toggleDetails{{ record.attendance_ids.0 }} = function() {
+        const detailsRow = document.getElementById('detailsRow{{ record.attendance_ids.0 }}');
+        const button = document.getElementById('detailsBtn{{ record.attendance_ids.0 }}');
+        
+        if (detailsRow && button) {
+            const isVisible = detailsRow.style.display === 'table-row';
+            
+            if (isVisible) {
+                // Hide details
+                detailsRow.style.display = 'none';
+                button.innerHTML = '<i class="fas fa-info-circle me-2"></i>View Details';
+                button.classList.remove('btn-secondary');
+                button.classList.add('btn-primary');
+            } else {
+                // Close any other open details first
+                document.querySelectorAll('.details-row').forEach(row => {
+                    row.style.display = 'none';
+                });
+                document.querySelectorAll('[id^="detailsBtn"]').forEach(btn => {
+                    btn.innerHTML = '<i class="fas fa-info-circle me-2"></i>View Details';
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary');
+                });
+                
+                // Show details
+                detailsRow.style.display = 'table-row';
+                button.innerHTML = '<i class="fas fa-times me-2"></i>Hide Details';
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-secondary');
+            }
+        }
+    };
+    
+    window.hideDetails{{ record.attendance_ids.0 }} = function() {
+        const detailsRow = document.getElementById('detailsRow{{ record.attendance_ids.0 }}');
+        const button = document.getElementById('detailsBtn{{ record.attendance_ids.0 }}');
+        
+        if (detailsRow && button) {
+            detailsRow.style.display = 'none';
+            button.innerHTML = '<i class="fas fa-info-circle me-2"></i>View Details';
+            button.classList.remove('btn-secondary');
+            button.classList.add('btn-primary');
+        }
+    };
+    {% endfor %}
+    
+    // Standard Bootstrap dropdown will handle the functionality
+});
+</script>
+{% endblock %}

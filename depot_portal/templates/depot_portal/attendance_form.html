@@ -1,0 +1,991 @@
+{% extends 'depot_portal/base.html' %}
+
+{% block title %}{{ action }} Attendance - KSRTC Depot Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container-fluid {
+        padding: 0;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .main-wrapper {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        margin: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 24px 32px;
+        border-radius: 20px;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(30, 60, 114, 0.3);
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
+        opacity: 0.1;
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        letter-spacing: -0.02em;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+        margin-top: 8px;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .breadcrumb-section {
+        background: white;
+        padding: 20px 32px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .breadcrumb-modern {
+        background: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .breadcrumb-modern .breadcrumb-item {
+        font-weight: 500;
+    }
+
+    .breadcrumb-modern .breadcrumb-item + .breadcrumb-item::before {
+        content: "→";
+        color: #6b7280;
+        font-weight: bold;
+    }
+
+    .breadcrumb-modern .breadcrumb-item a {
+        color: #4f46e5;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .breadcrumb-modern .breadcrumb-item a:hover {
+        color: #3730a3;
+    }
+
+    .breadcrumb-modern .breadcrumb-item.active {
+        color: #6b7280;
+    }
+
+    .form-container {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 32px;
+        margin-top: 20px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .form-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 24px 32px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .form-body {
+        padding: 32px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .form-label .required {
+        color: #ef4444;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #f9fafb;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        background: white;
+        transform: translateY(-1px);
+    }
+
+    .form-control.is-invalid {
+        border-color: #ef4444;
+        background: #fef2f2;
+    }
+
+    .form-control.is-invalid:focus {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+    }
+
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 6px;
+        font-weight: 500;
+    }
+
+    .help-text {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-top: 6px;
+        font-style: italic;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: flex-end;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 2px solid transparent;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(107, 114, 128, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+    }
+
+    .quick-actions-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+    }
+
+    .quick-actions-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 20px 24px;
+        border-bottom: 1px solid #e2e8f0;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .quick-actions-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .quick-actions-body {
+        padding: 24px;
+    }
+
+    .quick-action-btn {
+        width: 100%;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        background: white;
+        color: #374151;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+
+    .quick-action-btn.success {
+        border-color: #10b981;
+        color: #10b981;
+    }
+
+    .quick-action-btn.success:hover {
+        background: #10b981;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .quick-action-btn.warning {
+        border-color: #f59e0b;
+        color: #f59e0b;
+    }
+
+    .quick-action-btn.warning:hover {
+        background: #f59e0b;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .quick-action-btn.info {
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
+
+    .quick-action-btn.info:hover {
+        background: #3b82f6;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);
+    }
+
+    .quick-action-btn.primary {
+        border-color: #4f46e5;
+        color: #4f46e5;
+    }
+
+    .quick-action-btn.primary:hover {
+        background: #4f46e5;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
+    }
+
+    .alert-error {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        border: 1px solid #ef4444;
+        color: #991b1b;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+        .main-wrapper {
+            margin: 10px;
+            padding: 20px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .form-container {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .quick-actions-card {
+            position: static;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="main-wrapper">
+        <!-- Modern Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-title">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        {{ action }} Attendance
+                    </h1>
+                    <p class="page-subtitle">Record employee attendance for efficient tracking</p>
+                </div>
+                <div>
+                    <a href="{% url 'depot_portal:attendance_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Back
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-section">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb breadcrumb-modern">
+                    <li class="breadcrumb-item"><a href="{% url 'depot_portal:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'depot_portal:attendance_list' %}">Attendance</a></li>
+                    <li class="breadcrumb-item active">{{ action }} Attendance</li>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Form Container -->
+        <div class="form-container">
+            <div class="form-card">
+                <div class="form-header">
+                    <h3 class="form-title">
+                        <i class="fas fa-user-check me-2"></i>
+                        {{ action }} Employee Attendance
+                    </h3>
+                </div>
+                <div class="form-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.employee.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user me-2"></i>Employee <span class="required">*</span>
+                                    </label>
+                                    {{ form.employee }}
+                                    {% if form.employee.errors %}
+                                        <div class="error-message">
+                                            {{ form.employee.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.date.id_for_label }}" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>Date <span class="required">*</span>
+                                    </label>
+                                    {{ form.date }}
+                                    {% if form.date.errors %}
+                                        <div class="error-message">
+                                            {{ form.date.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label">
+                                        <i class="fas fa-circle me-2"></i>Status <span class="required">*</span>
+                                    </label>
+                                    {{ form.status }}
+                                    {% if form.status.errors %}
+                                        <div class="error-message">
+                                            {{ form.status.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-calendar-alt me-2"></i>Schedule
+                                        <span id="schedule-count-display" style="color: #10b981; font-weight: bold; margin-left: 10px;"></span>
+                                    </label>
+                                    <select class="form-control" id="schedule-selector" style="border: 2px solid #e5e7eb;">
+                                        <option value="">Select Schedule</option>
+                                    </select>
+                                    <div class="help-text">Select a schedule to see available trips</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-route me-2"></i>Trips
+                                        <span id="trip-count-display" style="color: #10b981; font-weight: bold; margin-left: 10px;"></span>
+                                    </label>
+                                    <select class="form-control" id="trip-selector" multiple style="height: 120px; border: 2px solid #e5e7eb;">
+                                        <option value="">Select Schedule first, then choose trips (Click multiple options)</option>
+                                    </select>
+                                    <div style="display: none;">{{ form.schedule_assignment }}</div>
+                                    {% if form.schedule_assignment.errors %}
+                                        <div class="error-message">
+                                            {{ form.schedule_assignment.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="help-text">Select multiple trips for attendance (hold Ctrl/Cmd for multiple)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.check_in_time.id_for_label }}" class="form-label">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Check In Time
+                                    </label>
+                                    {{ form.check_in_time }}
+                                    {% if form.check_in_time.errors %}
+                                        <div class="error-message">
+                                            {{ form.check_in_time.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.check_out_time.id_for_label }}" class="form-label">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Check Out Time
+                                    </label>
+                                    {{ form.check_out_time }}
+                                    {% if form.check_out_time.errors %}
+                                        <div class="error-message">
+                                            {{ form.check_out_time.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Selected Trips Display -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-list me-2"></i>Selected Schedule & Trips
+                            </label>
+                            <div id="selected-trips-display" class="selected-trips-container">
+                                <div class="empty-trips-message">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Select a schedule and trips to see them here
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                <i class="fas fa-sticky-note me-2"></i>Notes
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="error-message">
+                                    {{ form.notes.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Hidden fields for multiple trips -->
+                        <div id="multiple-trips-data" style="display: none;"></div>
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert-error">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="form-actions">
+                            <a href="{% url 'depot_portal:attendance_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {{ action }} Attendance
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="quick-actions-card">
+                <div class="quick-actions-header">
+                    <h4 class="quick-actions-title">
+                        <i class="fas fa-bolt me-2"></i>
+                        Quick Actions
+                    </h4>
+                </div>
+                <div class="quick-actions-body">
+                    <button type="button" class="quick-action-btn success" onclick="setCurrentTime('check_in')">
+                        <i class="fas fa-clock"></i> Set Check In Time
+                    </button>
+                    <button type="button" class="quick-action-btn warning" onclick="setCurrentTime('check_out')">
+                        <i class="fas fa-clock"></i> Set Check Out Time
+                    </button>
+                    <button type="button" class="quick-action-btn info" onclick="setToday()">
+                        <i class="fas fa-calendar-day"></i> Set Today's Date
+                    </button>
+                    <button type="button" class="quick-action-btn primary" onclick="setPresent()">
+                        <i class="fas fa-check"></i> Mark Present
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function setCurrentTime(field) {
+    const now = new Date();
+    const timeString = now.toTimeString().slice(0, 5); // HH:MM format
+    document.getElementById(`id_${field}_time`).value = timeString;
+}
+
+function setToday() {
+    const today = new Date();
+    const dateString = today.toISOString().slice(0, 10); // YYYY-MM-DD format
+    document.getElementById('id_date').value = dateString;
+}
+
+function setPresent() {
+    document.getElementById('id_status').value = 'present';
+    setCurrentTime('check_in');
+    setToday();
+}
+
+// Schedule and trip selection functionality for attendance
+document.addEventListener('DOMContentLoaded', function() {
+    const scheduleSelector = document.getElementById('schedule-selector');
+    const tripSelector = document.getElementById('trip-selector');
+    const selectedTripsDisplay = document.getElementById('selected-trips-display');
+    const employeeField = document.getElementById('id_employee');
+    const dateField = document.getElementById('id_date');
+    
+    let scheduleData = [];
+    let selectedSchedule = '';
+    let selectedTrips = new Set();
+    
+    // Load schedule data for specific employee and date
+    function loadScheduleData() {
+        const employeeId = employeeField.value;
+        const date = dateField.value;
+        
+        if (!employeeId || !date) {
+            scheduleData = [];
+            populateScheduleDropdown();
+            return Promise.resolve();
+        }
+        
+        const url = `{% url "depot_portal:get_schedules_ajax" %}?employee_id=${employeeId}&date=${date}`;
+        return fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Assignment data loaded for employee', employeeId, 'on', date, ':', data.length, 'assignments');
+                scheduleData = data;
+                populateScheduleDropdown();
+            })
+            .catch(error => {
+                console.error('Error loading assignment data:', error);
+                scheduleData = [];
+                populateScheduleDropdown();
+            });
+    }
+    
+    function populateScheduleDropdown() {
+        scheduleSelector.innerHTML = '<option value="">Select Schedule</option>';
+        
+        if (scheduleData.length === 0) {
+            scheduleSelector.innerHTML = '<option value="">No assignments found for this employee/date</option>';
+            resetTripsAndDisplay();
+            return;
+        }
+        
+        // Get unique schedules
+        const uniqueSchedules = [...new Set(scheduleData.map(item => item.schedule_no))];
+        
+        uniqueSchedules.forEach(scheduleNo => {
+            const option = document.createElement('option');
+            option.value = scheduleNo;
+            option.text = scheduleNo;
+            scheduleSelector.appendChild(option);
+        });
+        
+        console.log('Populated', uniqueSchedules.length, 'unique schedules');
+        resetTripsAndDisplay();
+    }
+    
+    function resetTripsAndDisplay() {
+        selectedSchedule = '';
+        selectedTrips.clear();
+        tripSelector.innerHTML = '<option value="">Select schedule first, then choose trips</option>';
+        updateSelectedTripsDisplay();
+    }
+    
+    function populateTripsForSchedule(scheduleNo) {
+        tripSelector.innerHTML = '<option value="">Select trips for this schedule (Click multiple)</option>';
+        selectedTrips.clear();
+        
+        if (!scheduleNo) {
+            updateSelectedTripsDisplay();
+            return;
+        }
+        
+        // Get trips for selected schedule
+        const tripsForSchedule = scheduleData.filter(item => item.schedule_no === scheduleNo);
+        const uniqueTrips = [...new Set(tripsForSchedule.map(item => item.trip_no))];
+        
+        uniqueTrips.forEach(tripNo => {
+            const tripData = tripsForSchedule.find(item => item.trip_no === tripNo);
+            const option = document.createElement('option');
+            option.value = tripNo;
+            option.text = `Trip ${tripNo} - Route ${tripData.route_no}`;
+            option.setAttribute('data-route', tripData.route_no);
+            tripSelector.appendChild(option);
+        });
+        
+        console.log('Populated', uniqueTrips.length, 'trips for schedule', scheduleNo);
+        updateSelectedTripsDisplay();
+    }
+    
+    function updateSelectedTripsDisplay() {
+        if (!selectedSchedule || selectedTrips.size === 0) {
+            selectedTripsDisplay.innerHTML = `
+                <div class="empty-trips-message">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Select a schedule and trips to see them here
+                </div>
+            `;
+            prepareMultipleTripsData();
+            return;
+        }
+        
+        let html = '';
+        selectedTrips.forEach(tripNo => {
+            const tripOption = tripSelector.querySelector(`option[value="${tripNo}"]`);
+            const route = tripOption ? tripOption.getAttribute('data-route') : '';
+            
+            html += `
+                <div class="trip-route-item" data-trip="${tripNo}">
+                    <div class="trip-info">
+                        <span class="trip-badge">Schedule ${selectedSchedule}</span>
+                        <i class="fas fa-arrow-right" style="color: #6b7280;"></i>
+                        <span class="trip-badge">Trip ${tripNo}</span>
+                        <i class="fas fa-arrow-right" style="color: #6b7280;"></i>
+                        <span class="route-badge">Route ${route}</span>
+                    </div>
+                    <button type="button" class="remove-trip" onclick="removeTrip('${tripNo}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        });
+        
+        selectedTripsDisplay.innerHTML = html;
+        prepareMultipleTripsData();
+    }
+    
+    function prepareMultipleTripsData() {
+        const multipleTripsContainer = document.getElementById('multiple-trips-data');
+        multipleTripsContainer.innerHTML = '';
+        
+        const tripsArray = Array.from(selectedTrips);
+        console.log('Preparing attendance data for schedule:', selectedSchedule, 'trips:', tripsArray);
+        
+        // Add schedule info
+        if (selectedSchedule) {
+            const scheduleInput = document.createElement('input');
+            scheduleInput.type = 'hidden';
+            scheduleInput.name = 'selected_schedule';
+            scheduleInput.value = selectedSchedule;
+            multipleTripsContainer.appendChild(scheduleInput);
+        }
+        
+        // Add trip data
+        tripsArray.forEach((tripNo, index) => {
+            const tripOption = tripSelector.querySelector(`option[value="${tripNo}"]`);
+            const route = tripOption ? tripOption.getAttribute('data-route') : '';
+            
+            // Create hidden input for trip
+            const tripInput = document.createElement('input');
+            tripInput.type = 'hidden';
+            tripInput.name = `trip_${index}`;
+            tripInput.value = tripNo;
+            multipleTripsContainer.appendChild(tripInput);
+            
+            // Create hidden input for route
+            const routeInput = document.createElement('input');
+            routeInput.type = 'hidden';
+            routeInput.name = `route_${index}`;
+            routeInput.value = route;
+            multipleTripsContainer.appendChild(routeInput);
+        });
+        
+        // Add trip count
+        const countInput = document.createElement('input');
+        countInput.type = 'hidden';
+        countInput.name = 'trip_count';
+        countInput.value = tripsArray.length;
+        multipleTripsContainer.appendChild(countInput);
+        
+        // Update visual indicators
+        const tripCountDisplay = document.getElementById('trip-count-display');
+        if (selectedTrips.size > 0) {
+            tripCountDisplay.textContent = `(${selectedTrips.size} trips selected)`;
+            tripSelector.style.borderColor = '#10b981';
+        } else {
+            tripCountDisplay.textContent = '';
+            tripSelector.style.borderColor = '#e5e7eb';
+        }
+        
+        console.log('Attendance data prepared for', tripsArray.length, 'trips');
+    }
+    
+    function removeTrip(tripNo) {
+        selectedTrips.delete(tripNo);
+        updateSelectedTripsDisplay();
+        
+        // Update trip selector
+        const option = tripSelector.querySelector(`option[value="${tripNo}"]`);
+        if (option) {
+            option.selected = false;
+        }
+    }
+    
+    // Event listeners
+    if (employeeField) {
+        employeeField.addEventListener('change', function() {
+            console.log('Employee changed:', this.value);
+            loadScheduleData();
+        });
+    }
+    
+    if (dateField) {
+        dateField.addEventListener('change', function() {
+            console.log('Date changed:', this.value);
+            loadScheduleData();
+        });
+    }
+    
+    if (scheduleSelector) {
+        scheduleSelector.addEventListener('change', function() {
+            selectedSchedule = this.value;
+            console.log('Schedule selected:', selectedSchedule);
+            populateTripsForSchedule(selectedSchedule);
+        });
+    }
+    
+    if (tripSelector) {
+        tripSelector.addEventListener('change', function() {
+            const selectedOptions = Array.from(this.selectedOptions);
+            selectedTrips.clear();
+            
+            console.log('Trips selected:', selectedOptions.map(o => o.value));
+            
+            selectedOptions.forEach(option => {
+                if (option.value) {
+                    selectedTrips.add(option.value);
+                }
+            });
+            
+            updateSelectedTripsDisplay();
+        });
+    }
+    
+    // Make removeTrip function globally accessible
+    window.removeTrip = removeTrip;
+    
+    // Detect if we're in edit mode and initialize accordingly
+    const isEditMode = "{{ action }}" === "Edit";
+    const existingScheduleAssignment = document.querySelector('#id_schedule_assignment').value;
+    
+    // Get existing attendance data if in edit mode
+    const existingAttendanceData = isEditMode ? {
+        scheduleNo: "{% if attendance.schedule_assignment %}{{ attendance.schedule_assignment.schedule_no }}{% endif %}",
+        tripNo: "{% if attendance.schedule_assignment %}{{ attendance.schedule_assignment.trip_no }}{% endif %}",
+        routeNo: "{% if attendance.schedule_assignment %}{{ attendance.schedule_assignment.route_no }}{% endif %}",
+        assignmentId: "{% if attendance.schedule_assignment %}{{ attendance.schedule_assignment.assignment_id }}{% endif %}"
+    } : null;
+    
+    console.log('Form initialization:', {
+        isEditMode: isEditMode,
+        employeeValue: employeeField.value,
+        dateValue: dateField.value,
+        existingScheduleAssignment: existingScheduleAssignment,
+        existingAttendanceData: existingAttendanceData
+    });
+    
+    // Initialize - load data if employee and date are selected
+    if (employeeField.value && dateField.value) {
+        if (isEditMode && existingScheduleAssignment) {
+            // In edit mode, we need to pre-populate the custom dropdowns
+            loadScheduleData().then(() => {
+                // After schedule data loads, select the existing values
+                initializeEditMode();
+            });
+        } else {
+            // Normal initialization for new records
+            loadScheduleData();
+        }
+    }
+    
+    // Function to initialize form in edit mode
+    function initializeEditMode() {
+        console.log('Initializing edit mode with data:', existingAttendanceData);
+        
+        if (!existingAttendanceData || !existingAttendanceData.scheduleNo) {
+            console.log('No existing attendance data found');
+            return;
+        }
+        
+        const { scheduleNo, tripNo, routeNo, assignmentId } = existingAttendanceData;
+        
+        // Set the schedule selector
+        const scheduleSelector = document.getElementById('schedule-selector');
+        if (scheduleSelector && scheduleNo) {
+            console.log('Setting schedule selector to:', scheduleNo);
+            scheduleSelector.value = scheduleNo;
+            
+            // Trigger change event to load trips for this schedule
+            const changeEvent = new Event('change');
+            scheduleSelector.dispatchEvent(changeEvent);
+            
+            // After a short delay, set the trip selector
+            setTimeout(() => {
+                const tripSelector = document.getElementById('trip-selector');
+                if (tripSelector && tripNo) {
+                    console.log('Looking for trip option with trip number:', tripNo);
+                    
+                    // Find the trip option that matches our trip number
+                    const tripOptions = tripSelector.querySelectorAll('option');
+                    let foundTripOption = null;
+                    
+                    for (let option of tripOptions) {
+                        const optionTrip = option.getAttribute('data-trip');
+                        const optionSchedule = option.getAttribute('data-schedule');
+                        
+                        console.log('Checking option:', {
+                            text: option.textContent,
+                            value: option.value,
+                            trip: optionTrip,
+                            schedule: optionSchedule
+                        });
+                        
+                        if (optionTrip === tripNo && optionSchedule === scheduleNo) {
+                            foundTripOption = option;
+                            break;
+                        }
+                    }
+                    
+                    if (foundTripOption) {
+                        console.log('Found matching trip option:', foundTripOption.textContent);
+                        foundTripOption.selected = true;
+                        
+                        // Add to selected trips
+                        selectedTrips.add(foundTripOption.value);
+                        updateSelectedTripsDisplay();
+                        
+                        // Ensure the hidden field has the correct value
+                        const scheduleAssignmentField = document.querySelector('#id_schedule_assignment');
+                        if (scheduleAssignmentField && existingScheduleAssignment) {
+                            scheduleAssignmentField.value = existingScheduleAssignment;
+                            console.log('Set hidden field value to:', existingScheduleAssignment);
+                        }
+                    } else {
+                        console.log('Could not find matching trip option for:', { scheduleNo, tripNo });
+                    }
+                } else {
+                    console.log('Trip selector not found or no trip number available');
+                }
+            }, 800); // Increased delay to ensure trips are loaded
+        } else {
+            console.log('Schedule selector not found or no schedule number available');
+        }
+    }
+
+    // Add Bootstrap classes to form controls
+    const formControls = document.querySelectorAll('select, input[type="text"], input[type="date"], input[type="time"], textarea');
+    formControls.forEach(control => {
+        control.classList.add('form-control');
+        
+        // Add error styling if there are errors
+        const errorDiv = control.parentNode.querySelector('.error-message');
+        if (errorDiv) {
+            control.classList.add('is-invalid');
+        }
+    });
+});
+</script>
+{% endblock %}

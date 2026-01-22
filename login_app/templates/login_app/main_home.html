@@ -32,7 +32,7 @@
                     <li><a href="#"><i class="fas fa-info-circle me-2"></i>About Us</a></li>
                 </ul>
                 <ul>
-                    <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    <li><a href="{% url 'login_app:logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                 </ul>
             </div>
         </div>
@@ -101,6 +101,35 @@
                             <div class="col-md-6 mb-4">
                                 <div class="card h-100 tool-card">
                                     <div class="card-body">
+                                        <h4 class="card-title">Bus Route Analyzer</h4>
+                                        <div class="tool-icon mb-3">
+                                            <i class="fas fa-bus"></i>
+                                        </div>
+                                        <div class="d-grid">
+                                            <a href="{% url 'analyzer:analyzer_home' %}" class="btn btn-primary">Open Tool</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 tool-card">
+                                    <div class="card-body">
+                                        <h4 class="card-title">Route Performance</h4>
+                                        <div class="tool-icon mb-3">
+                                            <i class="fas fa-chart-bar"></i>
+                                        </div>
+                                        <p class="card-text small">Analyze route EPKM, identify top and underperforming routes</p>
+                                        <div class="d-grid">
+                                            <a href="{% url 'route_performance:dashboard' %}" class="btn btn-primary">Open Tool</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 tool-card">
+                                    <div class="card-body">
                                         <h4 class="card-title">Connect</h4>
                                         <div class="tool-icon mb-3">
                                             <i class="fas fa-link"></i>
@@ -111,11 +140,26 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 tool-card">
+                                    <div class="card-body">
+                                        <h4 class="card-title">Main Office Portal</h4>
+                                        <div class="tool-icon mb-3">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <p class="card-text small">Access main office dashboard, attendance reports, and depot overview</p>
+                                        <div class="d-grid">
+                                            <a href="{% url 'main_office:dashboard' %}" class="btn btn-primary">Open Portal</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="row mt-4">
                             <div class="col-12 text-center">
-                                <a href="{% url 'dashboard' %}" class="dashboard-link">
+                                <a href="{% url 'login_app:dashboard' %}" class="dashboard-link">
                                     <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
                                 </a>
                             </div>

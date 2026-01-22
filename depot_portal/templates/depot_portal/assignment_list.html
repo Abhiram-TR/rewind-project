@@ -1,0 +1,1295 @@
+{% extends 'depot_portal/base.html' %}
+
+{% block title %}Assignments - KSRTC Depot Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container-fluid {
+        padding: 0;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .main-wrapper {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        margin: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 24px 32px;
+        border-radius: 20px;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(30, 60, 114, 0.3);
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        letter-spacing: -0.02em;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+        margin-top: 8px;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 18px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3498db, #2ecc71);
+        border-radius: 15px 15px 0 0;
+    }
+
+    .stat-card.pending::before {
+        background: linear-gradient(90deg, #f39c12, #e67e22);
+    }
+
+    .stat-card.completed::before {
+        background: linear-gradient(90deg, #27ae60, #2ecc71);
+    }
+
+    .stat-card.today::before {
+        background: linear-gradient(90deg, #3498db, #2980b9);
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 12px;
+        color: #3498db;
+    }
+
+    .stat-card.pending .stat-icon { color: #f39c12; }
+    .stat-card.completed .stat-icon { color: #27ae60; }
+    .stat-card.today .stat-icon { color: #3498db; }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 8px 0;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .search-filter-section {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-box {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 20px 12px 50px;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        background: white;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #7f8c8d;
+        font-size: 1.1rem;
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .filter-btn {
+        padding: 10px 20px;
+        border: 2px solid transparent;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-btn.active {
+        background: #4f46e5;
+        color: white;
+        border-color: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+    }
+
+    .filter-btn.btn-outline-warning.active {
+        background: #f59e0b;
+        border-color: #f59e0b;
+    }
+
+    .filter-btn.btn-outline-success.active {
+        background: #10b981;
+        border-color: #10b981;
+    }
+
+    .filter-btn.btn-outline-danger.active {
+        background: #ef4444;
+        border-color: #ef4444;
+    }
+
+    .filter-btn.btn-outline-primary.active {
+        background: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .main-content {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .content-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 20px 30px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .content-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .table-container {
+        padding: 30px;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    .modern-table th {
+        background: #f8f9fa;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2c3e50;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .modern-table td {
+        padding: 15px;
+        border-bottom: 1px solid #f1f3f4;
+        vertical-align: middle;
+    }
+
+    .modern-table tbody tr {
+        transition: background-color 0.3s ease;
+    }
+
+    .modern-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .employee-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .employee-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3498db, #2ecc71);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .employee-details h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .employee-details small {
+        color: #7f8c8d;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-badge.assigned {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-badge.completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-badge.cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .assignment-info {
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    .assignment-info .schedule {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .assignment-info .route {
+        color: #7f8c8d;
+        font-size: 0.8rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action {
+        padding: 8px 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background: white;
+        color: #6c757d;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-action:hover {
+        background: #3498db;
+        color: white;
+        border-color: #3498db;
+        transform: translateY(-1px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #7f8c8d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .empty-state h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        margin-bottom: 30px;
+        font-size: 1.1rem;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #3498db, #2ecc71);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 25px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-primary-custom:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+    }
+
+    .modal-content {
+        border-radius: 24px;
+        border: none;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        border-radius: 0;
+        padding: 32px 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .modal-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23dots)"/></svg>');
+        opacity: 0.3;
+    }
+
+    .modal-title {
+        font-weight: 800;
+        margin: 0;
+        font-size: 1.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .modal-body {
+        padding: 40px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .info-grid .label {
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .info-grid .value {
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .detail-section {
+        margin-bottom: 32px;
+        padding: 24px;
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .detail-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    }
+
+    .detail-section-title {
+        color: #1f2937;
+        font-weight: 700;
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-item {
+        margin-bottom: 16px;
+        padding: 12px 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .detail-item:hover {
+        background: #f1f5f9;
+        transform: translateX(4px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .detail-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .detail-item strong {
+        color: #374151;
+        min-width: 120px;
+        display: inline-block;
+        font-weight: 700;
+    }
+
+    .modal-footer {
+        background: white;
+        border-top: 1px solid #e5e7eb;
+        padding: 24px 40px;
+    }
+
+    .modal-footer .btn {
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .modal-footer .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-footer .btn-primary {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        border: none;
+    }
+
+    .modal-footer .btn-secondary {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+    }
+
+    .multiple-trips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .trip-item {
+        background: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        border: 1px solid #e9ecef;
+    }
+
+    .trip-detail {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .trip-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .trip-badge.trip {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+    }
+
+    .trip-badge.route {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .employee-badge {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .status-badge-large {
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badge-large.assigned {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+
+    .status-badge-large.completed {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .status-badge-large.cancelled {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .detail-card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f3f4f6;
+    }
+
+    .detail-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f9fafb;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #4b5563;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .detail-value {
+        font-weight: 500;
+        color: #1f2937;
+        text-align: right;
+    }
+
+    .trips-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .trip-card {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        text-align: center;
+    }
+
+    .modal-backdrop {
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(4px);
+    }
+
+    .btn-close-white {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    @media (max-width: 768px) {
+        .main-wrapper {
+            margin: 10px;
+            padding: 20px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-buttons {
+            flex-direction: column;
+        }
+
+        .filter-btn {
+            text-align: center;
+        }
+
+        .modern-table {
+            font-size: 0.85rem;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 10px;
+        }
+
+        .employee-info {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="main-wrapper">
+        <!-- Modern Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-title">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Schedule Assignments
+                    </h1>
+                    <p class="page-subtitle">Manage and track employee work assignments efficiently</p>
+                </div>
+                <div class="d-flex">
+                    <a href="{% url 'depot_portal:daily_assignments_pdf' %}" class="btn-primary-custom me-2">
+                        <i class="fas fa-download me-1"></i>
+                        Export PDF
+                    </a>
+                    <a href="{% url 'depot_portal:assignment_add' %}" class="btn-primary-custom">
+                        <i class="fas fa-plus me-1"></i>
+                        Add Assignment
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modern Statistics Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="stat-number">{{ assignments.count }}</div>
+                <div class="stat-label">Total Assignments</div>
+            </div>
+            
+            <div class="stat-card pending">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number">{{ assignments|length }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            
+            <div class="stat-card completed">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            
+            <div class="stat-card today">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-number">0</div>
+                <div class="stat-label">Today</div>
+            </div>
+        </div>
+
+        <!-- Modern Search and Filter Section -->
+        <div class="search-filter-section">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Search assignments by employee, schedule, route..." 
+                               id="assignmentSearch" value="{{ current_search_filter|default:'' }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" class="form-control" id="dateFilter" placeholder="Filter by date" 
+                           value="{{ current_date_filter|default:'' }}" style="padding: 16px; border-radius: 50px; border: 2px solid #e5e7eb;">
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()" 
+                            style="padding: 16px; border-radius: 50px;">
+                        <i class="fas fa-eraser"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filter-buttons">
+                <a href="?status=assigned{% if current_date_filter %}&date={{ current_date_filter }}{% endif %}{% if current_search_filter %}&search={{ current_search_filter }}{% endif %}" 
+                   class="filter-btn btn btn-outline-warning {% if current_status_filter == 'assigned' %}active{% endif %}">
+                    <i class="fas fa-clock"></i> Assigned
+                </a>
+                <a href="?status=completed{% if current_date_filter %}&date={{ current_date_filter }}{% endif %}{% if current_search_filter %}&search={{ current_search_filter }}{% endif %}" 
+                   class="filter-btn btn btn-outline-success {% if current_status_filter == 'completed' %}active{% endif %}">
+                    <i class="fas fa-check"></i> Completed
+                </a>
+                <a href="?status=cancelled{% if current_date_filter %}&date={{ current_date_filter }}{% endif %}{% if current_search_filter %}&search={{ current_search_filter }}{% endif %}" 
+                   class="filter-btn btn btn-outline-danger {% if current_status_filter == 'cancelled' %}active{% endif %}">
+                    <i class="fas fa-times"></i> Cancelled
+                </a>
+                <a href="?date=today{% if current_status_filter %}&status={{ current_status_filter }}{% endif %}{% if current_search_filter %}&search={{ current_search_filter }}{% endif %}" 
+                   class="filter-btn btn btn-outline-primary {% if current_date_filter == 'today' %}active{% endif %}">
+                    <i class="fas fa-calendar"></i> Today
+                </a>
+                <a href="{% url 'depot_portal:assignment_list' %}" 
+                   class="filter-btn btn btn-outline-secondary {% if not current_status_filter and not current_date_filter %}active{% endif %}">
+                    <i class="fas fa-list"></i> All
+                </a>
+            </div>
+        </div>
+
+        <!-- Modern Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <h3 class="content-title">
+                    <i class="fas fa-list me-2"></i>
+                    Assignment List
+                    <small class="text-muted ms-3">{{ assignments.count }} total records</small>
+                </h3>
+            </div>
+
+            <div class="table-container">
+                {% if assignments %}
+                    <div class="table-responsive">
+                        <table class="modern-table" id="assignmentsTable">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-calendar-day me-2"></i>Date</th>
+                                    <th><i class="fas fa-user me-2"></i>Employee</th>
+                                    <th><i class="fas fa-route me-2"></i>Schedule Info</th>
+                                    <th><i class="fas fa-circle me-2"></i>Status</th>
+                                    <th><i class="fas fa-cog me-2"></i>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in assignments %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ assignment.date|date:"M d, Y" }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ assignment.date|date:"l" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="employee-info">
+                                            <div class="employee-avatar">
+                                                {{ assignment.employee.employee_name|first|upper }}
+                                            </div>
+                                            <div class="employee-details">
+                                                <h6>{{ assignment.employee.employee_name }}</h6>
+                                                <small>{{ assignment.employee.employee_id }} • {{ assignment.employee.get_role_display }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="assignment-info">
+                                            <div class="schedule">
+                                                <i class="fas fa-calendar-alt me-1"></i>Schedule {{ assignment.schedule_no }}
+                                            </div>
+                                            <div class="route">
+                                                <i class="fas fa-road me-1"></i>
+                                                {% if assignment.trips|length == 1 %}
+                                                    Trip {{ assignment.trips.0.trip_no }} • Route {{ assignment.trips.0.route_no }}
+                                                {% else %}
+                                                    <div class="multiple-trips">
+                                                        {% for trip in assignment.trips %}
+                                                            <span class="trip-item">
+                                                                Trip {{ trip.trip_no }} ({{ trip.route_no }}){% if not forloop.last %}, {% endif %}
+                                                            </span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge {% if assignment.status == 'assigned' %}assigned{% elif assignment.status == 'completed' %}completed{% elif assignment.status == 'cancelled' %}cancelled{% endif %}">
+                                            {% if assignment.status == 'assigned' %}
+                                                <i class="fas fa-clock me-1"></i>
+                                                Assigned
+                                            {% elif assignment.status == 'completed' %}
+                                                <i class="fas fa-check me-1"></i>
+                                                Completed
+                                            {% elif assignment.status == 'cancelled' %}
+                                                <i class="fas fa-times me-1"></i>
+                                                Cancelled
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            {% if assignment.trips|length == 1 %}
+                                                <a href="{% url 'depot_portal:assignment_edit' assignment.trips.0.assignment_id %}" 
+                                                   class="btn-action" title="Edit Assignment">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            {% else %}
+                                                <div class="dropdown">
+                                                    <button class="btn-action dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Edit Assignments">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        {% for trip in assignment.trips %}
+                                                            <li><a class="dropdown-item" href="{% url 'depot_portal:assignment_edit' trip.assignment_id %}">
+                                                                Edit Trip {{ trip.trip_no }}
+                                                            </a></li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                            <button type="button" class="btn-action" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#detailModal{{ assignment.assignment_ids.0 }}" 
+                                                    title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Enhanced Modal -->
+                                <div class="modal fade" id="detailModal{{ assignment.assignment_ids.0 }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">
+                                                    <i class="fas fa-calendar-alt me-2"></i>
+                                                    Assignment Details
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="detail-grid">
+                                                    <div class="detail-card">
+                                                        <div class="detail-card-header">
+                                                            <i class="fas fa-user" style="color: #3b82f6;"></i>
+                                                            <h6 class="detail-card-title">Employee Information</h6>
+                                                        </div>
+                                                        <div class="detail-row">
+                                                            <div class="detail-label">
+                                                                <i class="fas fa-user-tag"></i>
+                                                                Name:
+                                                            </div>
+                                                            <div class="detail-value">{{ assignment.employee.employee_name }}</div>
+                                                        </div>
+                                                        <div class="detail-row">
+                                                            <div class="detail-label">
+                                                                <i class="fas fa-id-card"></i>
+                                                                Employee ID:
+                                                            </div>
+                                                            <div class="detail-value">{{ assignment.employee.employee_id }}</div>
+                                                        </div>
+                                                        <div class="detail-row">
+                                                            <div class="detail-label">
+                                                                <i class="fas fa-briefcase"></i>
+                                                                Role:
+                                                            </div>
+                                                            <div class="detail-value">
+                                                                <span class="employee-badge">
+                                                                    <i class="fas fa-user-check"></i>
+                                                                    {{ assignment.employee.get_role_display }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="detail-card">
+                                                        <div class="detail-card-header">
+                                                            <i class="fas fa-calendar-alt" style="color: #10b981;"></i>
+                                                            <h6 class="detail-card-title">Assignment Details</h6>
+                                                        </div>
+                                                        <div class="detail-row">
+                                                            <div class="detail-label">
+                                                                <i class="fas fa-calendar"></i>
+                                                                Date:
+                                                            </div>
+                                                            <div class="detail-value">{{ assignment.date|date:"F d, Y (l)" }}</div>
+                                                        </div>
+                                                        <div class="detail-row">
+                                                            <div class="detail-label">
+                                                                <i class="fas fa-clock"></i>
+                                                                Status:
+                                                            </div>
+                                                            <div class="detail-value">
+                                                                <span class="status-badge-large {% if assignment.status == 'assigned' %}assigned{% elif assignment.status == 'completed' %}completed{% elif assignment.status == 'cancelled' %}cancelled{% endif %}">
+                                                                    {% if assignment.status == 'assigned' %}
+                                                                        <i class="fas fa-clock"></i>
+                                                                        Assigned
+                                                                    {% elif assignment.status == 'completed' %}
+                                                                        <i class="fas fa-check-circle"></i>
+                                                                        Completed
+                                                                    {% elif assignment.status == 'cancelled' %}
+                                                                        <i class="fas fa-times-circle"></i>
+                                                                        Cancelled
+                                                                    {% endif %}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="detail-row">
+                                                            <div class="detail-label">
+                                                                <i class="fas fa-calendar-check"></i>
+                                                                Schedule No:
+                                                            </div>
+                                                            <div class="detail-value">{{ assignment.schedule_no }}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="detail-card" style="margin-top: 20px;">
+                                                    <div class="detail-card-header">
+                                                        <i class="fas fa-route" style="color: #f59e0b;"></i>
+                                                        <h6 class="detail-card-title">Trip & Route Information</h6>
+                                                    </div>
+                                                    <div class="trips-container">
+                                                        {% for trip in assignment.trips %}
+                                                            <div class="trip-card">
+                                                                <div class="trip-badge trip">
+                                                                    <i class="fas fa-map-marker-alt"></i>
+                                                                    Trip {{ trip.trip_no }}
+                                                                </div>
+                                                                <div class="trip-badge route">
+                                                                    <i class="fas fa-route"></i>
+                                                                    Route {{ trip.route_no }}
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="detail-card" style="margin-top: 20px;">
+                                                    <div class="detail-card-header">
+                                                        <i class="fas fa-info-circle" style="color: #8b5cf6;"></i>
+                                                        <h6 class="detail-card-title">Additional Information</h6>
+                                                    </div>
+                                                    <div class="detail-row">
+                                                        <div class="detail-label">
+                                                            <i class="fas fa-user-shield"></i>
+                                                            Assigned By:
+                                                        </div>
+                                                        <div class="detail-value">{{ assignment.assigned_by.full_name }}</div>
+                                                    </div>
+                                                    <div class="detail-row">
+                                                        <div class="detail-label">
+                                                            <i class="fas fa-clock"></i>
+                                                            Created:
+                                                        </div>
+                                                        <div class="detail-value">{{ assignment.created_at|date:"M d, Y H:i" }}</div>
+                                                    </div>
+                                                    {% if assignment.notes %}
+                                                    <div class="detail-row">
+                                                        <div class="detail-label">
+                                                            <i class="fas fa-sticky-note"></i>
+                                                            Notes:
+                                                        </div>
+                                                        <div class="detail-value">{{ assignment.notes }}</div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                {% if assignment.trips|length == 1 %}
+                                                    <a href="{% url 'depot_portal:assignment_edit' assignment.trips.0.assignment_id %}" 
+                                                       class="btn btn-primary">Edit Assignment</a>
+                                                {% else %}
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                                            Edit Assignments
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            {% for trip in assignment.trips %}
+                                                                <li><a class="dropdown-item" href="{% url 'depot_portal:assignment_edit' trip.assignment_id %}">
+                                                                    Edit Trip {{ trip.trip_no }}
+                                                                </a></li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h4>No Assignments Found</h4>
+                        <p>No schedule assignments have been created yet. Start by creating your first assignment.</p>
+                        <a href="{% url 'depot_portal:assignment_add' %}" class="btn-primary-custom">
+                            <i class="fas fa-plus"></i>
+                            Create First Assignment
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple modal debugging
+console.log('Bootstrap version:', typeof bootstrap !== 'undefined' ? 'loaded' : 'not loaded');
+
+// Enhanced Search and Filter Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('assignmentSearch');
+    const dateFilter = document.getElementById('dateFilter');
+    const table = document.getElementById('assignmentsTable');
+    
+    // Function to apply filters via URL
+    function applyFilters() {
+        const searchTerm = searchInput.value.trim();
+        const dateValue = dateFilter.value;
+        
+        const params = new URLSearchParams(window.location.search);
+        
+        // Update or remove parameters
+        if (searchTerm) {
+            params.set('search', searchTerm);
+        } else {
+            params.delete('search');
+        }
+        
+        if (dateValue) {
+            params.set('date', dateValue);
+        } else {
+            params.delete('date');
+        }
+        
+        // Navigate to new URL
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    }
+    
+    // Search functionality with debounce
+    let searchTimeout;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                applyFilters();
+            }, 500); // 500ms debounce
+        });
+    }
+    
+    // Date filter functionality
+    if (dateFilter) {
+        dateFilter.addEventListener('change', function() {
+            applyFilters();
+        });
+    }
+    
+    // Client-side search for immediate feedback
+    if (searchInput && table) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            let visibleCount = 0;
+            
+            Array.from(rows).forEach(function(row) {
+                const employeeName = row.cells[1].textContent.toLowerCase();
+                const employeeId = row.cells[1].textContent.toLowerCase();
+                const scheduleInfo = row.cells[2].textContent.toLowerCase();
+                const status = row.cells[3].textContent.toLowerCase();
+                
+                const isVisible = employeeName.includes(searchTerm) || 
+                                employeeId.includes(searchTerm) || 
+                                scheduleInfo.includes(searchTerm) || 
+                                status.includes(searchTerm);
+                
+                if (isVisible) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Update record count
+            const recordCountElement = document.querySelector('.content-title small');
+            if (recordCountElement) {
+                recordCountElement.textContent = `${visibleCount} total assignments`;
+            }
+        });
+    }
+    
+    // Clear all filters function
+    window.clearFilters = function() {
+        window.location.href = "{% url 'depot_portal:assignment_list' %}";
+    };
+    
+    // Add smooth animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+    
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+    });
+    
+    // Let Bootstrap handle modal functionality naturally
+});
+</script>
+{% endblock %}

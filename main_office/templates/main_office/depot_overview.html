@@ -1,0 +1,876 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depot Overview - KSRTC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #d9693a;
+            --secondary-color: #4169E1;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --dark-color: #1f2937;
+            --light-color: #f8f9fa;
+            --border-color: #e5e7eb;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            color: var(--primary-color) !important;
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+        
+        .nav-link {
+            color: var(--dark-color) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+            transform: translateY(-1px);
+        }
+        
+        .main-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            margin: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 24px 32px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(30, 60, 114, 0.3);
+        }
+        
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
+            opacity: 0.1;
+        }
+        
+        .page-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            letter-spacing: -0.02em;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-subtitle {
+            font-size: 1rem;
+            margin-top: 8px;
+            opacity: 0.9;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), #ff8a50);
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .stat-card.depots::before {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        }
+        
+        .stat-card.employees::before {
+            background: linear-gradient(90deg, var(--info-color), #1e40af);
+        }
+        
+        .stat-card.attendance::before {
+            background: linear-gradient(90deg, var(--success-color), #059669);
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+            color: white;
+        }
+        
+        .stat-card.depots .stat-icon {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        }
+        
+        .stat-card.employees .stat-icon {
+            background: linear-gradient(135deg, var(--info-color), #1e40af);
+        }
+        
+        .stat-card.attendance .stat-icon {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--dark-color);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .stat-description {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        
+        .search-filter-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 20px 12px 48px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(217, 105, 58, 0.1);
+            background: white;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 1.2rem;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .filter-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-btn.btn-outline-success {
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+        
+        .filter-btn.btn-outline-warning {
+            border-color: var(--warning-color);
+            color: var(--warning-color);
+        }
+        
+        .filter-btn.btn-outline-danger {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+        
+        .depot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .depot-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .depot-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        }
+        
+        .depot-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+        }
+        
+        .depot-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 0 0 4px 0;
+        }
+        
+        .depot-code {
+            font-size: 0.875rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            background: rgba(217, 105, 58, 0.1);
+            padding: 2px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        
+        .depot-body {
+            padding: 24px;
+        }
+        
+        .depot-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .depot-stat {
+            text-align: center;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .depot-stat:hover {
+            background: #f1f5f9;
+            transform: translateY(-2px);
+        }
+        
+        .depot-stat-number {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--dark-color);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        
+        .depot-stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .role-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .role-item {
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .role-item.drivers {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        
+        .role-item.conductors {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+        
+        .role-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .role-number {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .role-item.drivers .role-number {
+            color: var(--info-color);
+        }
+        
+        .role-item.conductors .role-number {
+            color: var(--warning-color);
+        }
+        
+        .role-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .attendance-section {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .attendance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .attendance-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+        
+        .attendance-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .attendance-excellent {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .attendance-good {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        
+        .attendance-poor {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        .attendance-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .attendance-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .attendance-percentage {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+        
+        .depot-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .depot-action {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .depot-action:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            color: #d1d5db;
+            margin-bottom: 24px;
+        }
+        
+        .empty-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 8px;
+        }
+        
+        .empty-text {
+            font-size: 1rem;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+        
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary-color), #ff8a50);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(217, 105, 58, 0.3);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .main-wrapper {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .depot-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .depot-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'main_office:dashboard' %}">
+                <i class="fas fa-building me-2"></i>
+                Main Office
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'main_office:dashboard' %}">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="main-wrapper">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-building"></i>
+                    Depot Network Overview
+                </h1>
+                <p class="page-subtitle">Comprehensive view of all KSRTC depot operations and performance metrics</p>
+            </div>
+
+            <!-- Statistics Overview -->
+            <div class="stats-overview">
+                <div class="stat-card depots">
+                    <div class="stat-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="stat-number">{{ depot_stats|length|default:0 }}</div>
+                    <div class="stat-label">Active Depots</div>
+                    <div class="stat-description">Currently operational</div>
+                </div>
+                
+                <div class="stat-card employees">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number">
+                        {% if depot_stats %}
+                            {% with total=0 %}
+                                {% for depot in depot_stats %}
+                                    {% with total=total|add:depot.total_employees %}{% endwith %}
+                                {% endfor %}
+                                {{ total }}
+                            {% endwith %}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
+                    <div class="stat-label">Total Employees</div>
+                    <div class="stat-description">Across all depots</div>
+                </div>
+                
+                <div class="stat-card attendance">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-number">
+                        {% if depot_stats %}
+                            {% with present=0 %}
+                                {% for depot in depot_stats %}
+                                    {% with present=present|add:depot.present_today %}{% endwith %}
+                                {% endfor %}
+                                {{ present }}
+                            {% endwith %}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
+                    <div class="stat-label">Present Today</div>
+                    <div class="stat-description">Current attendance</div>
+                </div>
+            </div>
+
+            <!-- Depot Grid -->
+            {% if depot_stats %}
+                <div class="depot-grid" id="depotGrid">
+                    {% for depot_info in depot_stats %}
+                    <div class="depot-card" data-attendance-rate="{{ depot_info.attendance_rate }}" data-depot-name="{{ depot_info.depot.depot_name|lower }}" data-depot-code="{{ depot_info.depot.depot_code|lower }}">
+                        <div class="depot-header">
+                            <div class="depot-name">{{ depot_info.depot.depot_name }}</div>
+                            <div class="depot-code">{{ depot_info.depot.depot_code }}</div>
+                        </div>
+                        
+                        <div class="depot-body">
+                            <!-- Main Statistics -->
+                            <div class="depot-stats">
+                                <div class="depot-stat">
+                                    <div class="depot-stat-number">{{ depot_info.total_employees }}</div>
+                                    <div class="depot-stat-label">Total Staff</div>
+                                </div>
+                                <div class="depot-stat">
+                                    <div class="depot-stat-number">{{ depot_info.present_today }}</div>
+                                    <div class="depot-stat-label">Present Today</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Role Breakdown -->
+                            <div class="role-breakdown">
+                                <div class="role-item drivers">
+                                    <div class="role-number">{{ depot_info.drivers }}</div>
+                                    <div class="role-label">Drivers</div>
+                                </div>
+                                <div class="role-item conductors">
+                                    <div class="role-number">{{ depot_info.conductors }}</div>
+                                    <div class="role-label">Conductors</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Attendance Section -->
+                            <div class="attendance-section">
+                                <div class="attendance-header">
+                                    <h6 class="attendance-title">Attendance Performance</h6>
+                                    <span class="attendance-badge 
+                                        {% if depot_info.attendance_rate >= 90 %}attendance-excellent
+                                        {% elif depot_info.attendance_rate >= 70 %}attendance-good
+                                        {% else %}attendance-poor{% endif %}">
+                                        {% if depot_info.attendance_rate >= 90 %}
+                                            <i class="fas fa-trophy"></i> Excellent
+                                        {% elif depot_info.attendance_rate >= 70 %}
+                                            <i class="fas fa-thumbs-up"></i> Good
+                                        {% else %}
+                                            <i class="fas fa-exclamation-triangle"></i> Poor
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="attendance-details">
+                                    <div class="attendance-text">Current Rate</div>
+                                    <div class="attendance-percentage">{{ depot_info.attendance_rate }}%</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="depot-actions">
+                                <a href="#" class="depot-action">
+                                    <i class="fas fa-eye me-1"></i> View Details
+                                </a>
+                                <a href="#" class="depot-action">
+                                    <i class="fas fa-chart-line me-1"></i> Reports
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3 class="empty-title">No Depot Data Available</h3>
+                    <p class="empty-text">Start by adding depot information to see comprehensive analytics and performance metrics.</p>
+                    <a href="#" class="btn-primary-custom">
+                        <i class="fas fa-plus"></i>
+                        Add Depot
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- Search and Filter (moved to bottom) -->
+            <div class="search-filter-section">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search depots by name, code, or location..." id="depotSearch">
+                </div>
+                
+                <div class="filter-buttons">
+                    <a href="#" class="filter-btn btn-outline-success" data-filter="excellent">
+                        <i class="fas fa-trophy"></i> Excellent (90%+)
+                    </a>
+                    <a href="#" class="filter-btn btn-outline-warning" data-filter="good">
+                        <i class="fas fa-thumbs-up"></i> Good (70-89%)
+                    </a>
+                    <a href="#" class="filter-btn btn-outline-danger" data-filter="poor">
+                        <i class="fas fa-exclamation-triangle"></i> Needs Attention (<70%)
+                    </a>
+                    <a href="#" class="filter-btn btn-outline-secondary" data-filter="all">
+                        <i class="fas fa-list"></i> Show All
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('depotSearch');
+            const depotGrid = document.getElementById('depotGrid');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            // Search functionality
+            if (searchInput && depotGrid) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
+                    const depotCards = depotGrid.querySelectorAll('.depot-card');
+                    
+                    depotCards.forEach(card => {
+                        const depotName = card.dataset.depotName;
+                        const depotCode = card.dataset.depotCode;
+                        
+                        if (depotName.includes(searchTerm) || depotCode.includes(searchTerm)) {
+                            card.style.display = 'block';
+                            card.style.opacity = '1';
+                            card.style.transform = 'translateY(0)';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            }
+            
+            // Filter functionality
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Update active state
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filter = this.dataset.filter;
+                    const depotCards = depotGrid.querySelectorAll('.depot-card');
+                    
+                    depotCards.forEach(card => {
+                        const attendanceRate = parseFloat(card.dataset.attendanceRate);
+                        let shouldShow = true;
+                        
+                        switch(filter) {
+                            case 'excellent':
+                                shouldShow = attendanceRate >= 90;
+                                break;
+                            case 'good':
+                                shouldShow = attendanceRate >= 70 && attendanceRate < 90;
+                                break;
+                            case 'poor':
+                                shouldShow = attendanceRate < 70;
+                                break;
+                            case 'all':
+                            default:
+                                shouldShow = true;
+                                break;
+                        }
+                        
+                        if (shouldShow) {
+                            card.style.display = 'block';
+                            setTimeout(() => {
+                                card.style.opacity = '1';
+                                card.style.transform = 'translateY(0)';
+                            }, 100);
+                        } else {
+                            card.style.opacity = '0';
+                            card.style.transform = 'translateY(20px)';
+                            setTimeout(() => {
+                                card.style.display = 'none';
+                            }, 300);
+                        }
+                    });
+                });
+            });
+            
+            // Add animation on load
+            const depotCards = document.querySelectorAll('.depot-card');
+            depotCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+            
+            // Stat cards animation
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -12,7 +12,7 @@ def register_view(request):
             # Log the user in after registration
             login(request, user)
             messages.success(request, f"Account created for {user.username}!")
-            return redirect('main_home')  # Redirect to your home page
+            return redirect('login_app:main_home')  # Redirect to your home page
         else:
             # Form validation errors
             for field, errors in form.errors.items():
@@ -33,7 +33,7 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f"Welcome back, {username}!")
-                return redirect('main_home')  # Redirect to your home page
+                return redirect('login_app:main_home')  # Redirect to your home page
             else:
                 messages.error(request, "Invalid username or password.")
         else:
@@ -45,7 +45,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.info(request, "You have successfully logged out.")
-    return redirect('login')
+    return redirect('login_app:login')
 
 # Step 4: Create a home view that shows authenticated user information
 def home_view(request):

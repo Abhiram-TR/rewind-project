@@ -28,6 +28,11 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "ksrtc1-294298529874.us-central1.run.app",  
     "127.0.0.1",  # Keep localhost for local testing
+    "127.0.0.1:8000",  # Add 127.0.0.1 with port
+    "localhost",  # Add localhost for API calls
+    "localhost:8000",  # Add localhost with port
+    "testserver",  # Add testserver for Django test client
+    "*",  # Allow all hosts for development (REMOVE IN PRODUCTION!)
     "ksrtc1-945909242090.us-central1.run.app"
 ]
 # "*.run.app",
@@ -54,6 +59,10 @@ INSTALLED_APPS = [
     'tracker',
     'bus_route',
     'login_app',
+    'analyzer',
+    'route_performance',
+    'depot_portal',
+    'main_office',
 
 ]
 
@@ -150,6 +159,10 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Authentication settings
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/main_home/'
+LOGOUT_REDIRECT_URL = '/'
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Using Redis as broker

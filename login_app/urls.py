@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views  # This line is important - it imports your views module
 
+app_name = 'login_app'
+
 urlpatterns = [
     path('', views.home_view, name='home'),
     path('register/', views.register_view, name='register'),

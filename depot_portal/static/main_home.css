@@ -1,0 +1,220 @@
+
+:root {
+    --primary-color: #d9693a;
+    --secondary-color: #4169E1;
+    --dark-color: #333;
+    --light-color: #f8f9fa;
+    --accent-color: #ff6334;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+}
+
+/* Header Styles */
+.header {
+    padding: 15px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background-color: white;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo-container img {
+    max-height: 80px;
+    transition: transform 0.3s ease;
+}
+
+.logo-container img:hover {
+    transform: scale(1.05);
+}
+
+/* Navigation Styles */
+.nav-menu {
+    background-color: var(--primary-color);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.nav-menu ul {
+    list-style: none;
+    display: flex;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-menu li {
+    padding: 0;
+    position: relative;
+}
+
+.nav-menu a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    padding: 15px 25px;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.nav-menu a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-menu li::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background-color: white;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-menu li:hover::after {
+    width: 80%;
+}
+
+/* Banner Styles */
+.banner {
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{% static "banner-bg.jpg" %}');
+    background-color: #6c757d;
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 60px 0;
+    text-align: center;
+    position: relative;
+    margin-bottom: 40px;
+}
+
+.banner h2 {
+    font-weight: 300;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.banner h1 {
+    color: var(--accent-color);
+    font-size: 2.5rem;
+    margin-top: 15px;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+    display: inline-block;
+}
+
+.banner h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    width: 80px;
+    height: 4px;
+    background-color: var(--accent-color);
+    transform: translateX(-50%);
+}
+
+/* Tool Card Styles */
+.dashboard-card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.dashboard-card .card-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 20px;
+    border-bottom: none;
+}
+
+.tool-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.tool-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    text-align: center;
+    margin: 20px 0;
+}
+
+.tool-card .card-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-align: center;
+}
+
+.tool-card .btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(217, 105, 58, 0.3);
+}
+
+.tool-card .btn-primary:hover {
+    background-color: #c55a2e;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(217, 105, 58, 0.4);
+}
+
+.dashboard-link {
+    display: inline-block;
+    margin-top: 20px;
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    padding: 10px 30px;
+    border: 2px solid var(--primary-color);
+    border-radius: 30px;
+}
+
+.dashboard-link:hover {
+    background-color: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(217, 105, 58, 0.3);
+}
+
+/* Footer Styles */
+.footer {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 30px 0;
+    text-align: center;
+    margin-top: 40px;
+}
+
+.footer p {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .banner h1 {
+        font-size: 2.2rem;
+    }
+}

@@ -50,12 +50,21 @@
                         <div class="login-header"></div>
                         <p>You are not logged in. Please login or register to access your dashboard.</p>
                         <div class="mt-4">
-                            <a href="{% url 'login' %}" class="btn btn-login">
+                            <a href="{% url 'login_app:login' %}" class="btn btn-login">
                                 <i class="fas fa-sign-in-alt me-2"></i>Login
                             </a>
-                            <a href="{% url 'register' %}" class="btn btn-register">
+                            <a href="{% url 'login_app:register' %}" class="btn btn-register">
                                 <i class="fas fa-user-plus me-2"></i>Register
                             </a>
+                        </div>
+                        <div class="mt-3">
+                            <hr>
+                            <p class="text-center mb-3">Depot Staff Login</p>
+                            <div class="d-grid">
+                                <a href="/depot/login/" class="btn btn-outline-primary">
+                                    <i class="fas fa-warehouse me-2"></i>Depot Portal Login
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Performance Dashboard - KSRTC</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #14b8a6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --bg-glass: rgba(255, 255, 255, 0.1);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-light: #94a3b8;
+            --border: rgba(226, 232, 240, 0.8);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --radius: 16px;
+            --radius-sm: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-light);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Remove animated background */
+
+        /* Modern Container */
+        .main-container {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin: 2rem;
+            min-height: calc(100vh - 4rem);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        /* Modern Header */
+        .header-section {
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem 0 1.5rem;
+            position: relative;
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.01em;
+        }
+
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        /* Clean Cards */
+        .glass-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .glass-card:hover::before {
+            left: 100%;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+            border-color: var(--border);
+        }
+
+        /* Metric Cards */
+        .metric-card {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            height: 100%;
+            position: relative;
+        }
+
+        .metric-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .metric-icon.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+        }
+
+        .metric-icon.success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4);
+        }
+
+        .metric-icon.warning {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            color: white;
+            box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4);
+        }
+
+        .metric-icon.info {
+            background: linear-gradient(135deg, var(--info), #0891b2);
+            color: white;
+            box-shadow: 0 8px 32px rgba(6, 182, 212, 0.4);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .metric-description {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        /* Chart Cards */
+        .chart-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+
+        .chart-header {
+            background: var(--bg-light);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+
+        .chart-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .chart-container {
+            padding: 2rem;
+            height: 400px;
+            position: relative;
+        }
+
+        /* Performance Cards */
+        .performer-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .performer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+
+        .performer-header {
+            padding: 1.5rem 2rem;
+            color: white;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .performer-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            opacity: 0.9;
+            z-index: 1;
+        }
+
+        .performer-header > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        .performer-header.success {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        .performer-header.warning {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+        }
+
+        .performer-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .performer-subtitle {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .performer-item {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .performer-item:hover {
+            background: rgba(99, 102, 241, 0.03);
+            transform: translateX(4px);
+        }
+
+        .performer-item:last-child {
+            border-bottom: none;
+        }
+
+        .performer-route {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .performer-details {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .performer-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.2rem;
+        }
+
+        .performer-label {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            margin: 2rem 0 3rem;
+        }
+
+        .filter-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .filter-header {
+            background: var(--bg-light);
+            padding: 1.2rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .filter-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Form Controls */
+        .form-control {
+            background: var(--bg-white);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background: var(--bg-white);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            outline: none;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Modern Buttons */
+        .btn {
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            border: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-outline-secondary {
+            background: var(--bg-light);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--bg-white);
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Colors */
+        .text-primary-custom { color: var(--primary); }
+        .text-success-custom { color: var(--success); }
+        .text-warning-custom { color: var(--warning); }
+        .text-info-custom { color: var(--info); }
+        .text-danger-custom { color: var(--danger); }
+
+        /* Animations */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .animate-slide-up {
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-container {
+                margin: 1rem;
+                min-height: calc(100vh - 2rem);
+            }
+            
+            .header-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 0.5rem;
+                min-height: calc(100vh - 1rem);
+                border-radius: var(--radius-sm);
+            }
+            
+            .header-title {
+                font-size: 2rem;
+            }
+            
+            .header-subtitle {
+                font-size: 1rem;
+            }
+            
+            .chart-container {
+                height: 300px;
+                padding: 1rem;
+            }
+            
+            .performer-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.8rem;
+            }
+            
+            .performer-value,
+            .performer-label {
+                text-align: left;
+            }
+        }
+
+        /* Loading States */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            z-index: 10;
+        }
+
+        .spinner-border {
+            width: 2rem;
+            height: 2rem;
+            border-width: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container animate-fade-in">
+        <!-- Modern Header -->
+        <div class="header-section">
+            <div class="container-fluid">
+                <h1 class="header-title">Route Performance Dashboard</h1>
+                <p class="header-subtitle">Real-time analytics and insights for KSRTC route optimization</p>
+            </div>
+        </div>
+
+        <div class="container-fluid p-4">
+            <!-- Enhanced Filter Section -->
+            <div class="filter-section">
+                <div class="filter-card animate-slide-up">
+                    <div class="filter-header">
+                        <h5 class="filter-title">
+                            <i class="bi bi-sliders2"></i>
+                            Analytics Control Panel
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="filter-form">
+                            <div class="row g-4 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-calendar-event me-2"></i>Start Date
+                                    </label>
+                                    <input type="date" class="form-control" id="start-date" value="2024-10-15">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-calendar-check me-2"></i>End Date
+                                    </label>
+                                    <input type="date" class="form-control" id="end-date" value="2024-10-22">
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-primary w-100" onclick="updateDashboard()">
+                                        <i class="bi bi-graph-up-arrow me-2"></i>Analyze Performance
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Metric Cards -->
+            <div class="row g-4 mb-5">
+                <div class="col-xl-3 col-md-6">
+                    <div class="glass-card animate-slide-up" style="animation-delay: 0.1s;">
+                        <div class="metric-card">
+                            <div class="metric-icon primary">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <div class="metric-label">Industry Avg EPKM</div>
+                            <div class="metric-value" id="avg-epkm">--</div>
+                            <div class="metric-description">₹ per kilometer</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="glass-card animate-slide-up" style="animation-delay: 0.2s;">
+                        <div class="metric-card">
+                            <div class="metric-icon success">
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+                            <div class="metric-label">Total Routes</div>
+                            <div class="metric-value" id="total-routes">--</div>
+                            <div class="metric-description">active routes</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="glass-card animate-slide-up" style="animation-delay: 0.3s;">
+                        <div class="metric-card">
+                            <div class="metric-icon info">
+                                <i class="bi bi-currency-rupee"></i>
+                            </div>
+                            <div class="metric-label">Total Revenue</div>
+                            <div class="metric-value" id="total-revenue">--</div>
+                            <div class="metric-description">selected period</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="glass-card animate-slide-up" style="animation-delay: 0.4s;">
+                        <div class="metric-card">
+                            <div class="metric-icon warning">
+                                <i class="bi bi-award"></i>
+                            </div>
+                            <div class="metric-label">Best EPKM</div>
+                            <div class="metric-value" id="best-epkm">--</div>
+                            <div class="metric-description">highest performer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Charts Section -->
+            <div class="row g-4 mb-5">
+                <div class="col-lg-8">
+                    <div class="chart-card animate-slide-up" style="animation-delay: 0.5s;">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <i class="bi bi-bar-chart me-2"></i>Route Performance Comparison
+                            </div>
+                            <div class="chart-subtitle">Top performing routes analyzed by EPKM metrics</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="chart-card animate-slide-up" style="animation-delay: 0.6s;">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <i class="bi bi-pie-chart me-2"></i>EPKM Distribution
+                            </div>
+                            <div class="chart-subtitle">Performance category breakdown</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Performance Rankings -->
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="performer-card animate-slide-up" style="animation-delay: 0.7s;">
+                        <div class="performer-header success">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-trophy-fill me-3" style="font-size: 1.5rem;"></i>
+                                    <div>
+                                        <div class="performer-title">Top Performers</div>
+                                        <div class="performer-subtitle">Highest EPKM routes</div>
+                                    </div>
+                                </div>
+                                <div class="badge bg-light text-success fw-bold px-3 py-2">Top 20</div>
+                            </div>
+                        </div>
+                        <div id="top-performers">
+                            <div class="loading-overlay">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="performer-card animate-slide-up" style="animation-delay: 0.8s;">
+                        <div class="performer-header warning">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 1.5rem;"></i>
+                                    <div>
+                                        <div class="performer-title">Needs Attention</div>
+                                        <div class="performer-subtitle">Lowest EPKM routes</div>
+                                    </div>
+                                </div>
+                                <div class="badge bg-light text-warning fw-bold px-3 py-2">Bottom 20</div>
+                            </div>
+                        </div>
+                        <div id="underperformers">
+                            <div class="loading-overlay">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let performanceChart;
+        let distributionChart;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            addParallaxEffect();
+            addMouseTrackingEffect();
+            
+            // Auto-load data on page load
+            setTimeout(() => {
+                loadInitialData();
+            }, 1000);
+        });
+
+        function initializeCharts() {
+            createPerformanceChart();
+            createDistributionChart();
+        }
+
+        function createPerformanceChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.8)');
+            gradient.addColorStop(0.5, 'rgba(20, 184, 166, 0.6)');
+            gradient.addColorStop(1, 'rgba(6, 182, 212, 0.4)');
+            
+            const routes = ['N', '1520', '1091', '1523D', '1263', '1561', '1736', '1492', '1037A', '1160', '1267', '1562D', '1578SC', '1070W', '1567W', '1401', '1567D'];
+            const epkmValues = [247.12, 244.36, 241.43, 222.92, 150.57, 140, 130, 125, 118, 110, 105, 95, 85, 75, 7.19, 1.58, 5.54];
+            
+            performanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: routes,
+                    datasets: [{
+                        data: epkmValues,
+                        backgroundColor: gradient,
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(99, 102, 241, 0.5)',
+                            borderWidth: 1,
+                            cornerRadius: 12,
+                            displayColors: false,
+                            callbacks: {
+                                title: function(context) {
+                                    return `Route ${context[0].label}`;
+                                },
+                                label: function(context) {
+                                    return `EPKM: ₹${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'EPKM (₹/km)',
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                },
+                                color: '#64748b'
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.2)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: '#64748b'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11,
+                                    weight: '500'
+                                },
+                                color: '#64748b',
+                                maxRotation: 45
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        function createDistributionChart() {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            
+            distributionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High Performance (>200)', 'Medium Performance (50-200)', 'Low Performance (<50)'],
+                    datasets: [{
+                        data: [5, 123, 26],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 4,
+                        hoverOffset: 12,
+                        hoverBorderWidth: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                },
+                                color: '#64748b',
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(99, 102, 241, 0.5)',
+                            borderWidth: 1,
+                            cornerRadius: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed / 154) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed} routes (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        function addParallaxEffect() {
+            // Parallax effect removed to eliminate scroll lag
+        }
+
+        function addMouseTrackingEffect() {
+            // Mouse tracking effect removed for cleaner experience
+        }
+
+        function updateDashboard() {
+            // Add loading animation
+            const btn = event.target;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing...';
+            btn.disabled = true;
+            
+            // Get date values
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            
+            // Fetch actual data from API with limit=20
+            Promise.all([
+                fetch(`/performance/api/performance/?start_date=${startDate}&end_date=${endDate}&limit=20`),
+                fetch(`/performance/api/top-performers/?start_date=${startDate}&end_date=${endDate}&limit=20`),
+                fetch(`/performance/api/underperformers/?start_date=${startDate}&end_date=${endDate}&limit=20`)
+            ])
+            .then(responses => Promise.all(responses.map(r => r.json())))
+            .then(([performanceData, topPerformers, underperformers]) => {
+                // Update charts and displays with real data
+                updateChartsWithData(performanceData);
+                updatePerformersDisplay(topPerformers, underperformers);
+                updateMetrics(topPerformers, underperformers);
+                
+                btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Analysis Complete';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-primary');
+                    btn.disabled = false;
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                btn.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Error';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-danger');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('btn-danger');
+                    btn.classList.add('btn-primary');
+                    btn.disabled = false;
+                }, 2000);
+            });
+        }
+
+        function loadInitialData() {
+            // Load data automatically with default date range
+            const startDate = document.getElementById('start-date').value || '2024-10-15';
+            const endDate = document.getElementById('end-date').value || '2024-10-22';
+            
+            // Fetch data for initial load
+            Promise.all([
+                fetch(`/performance/api/top-performers/?start_date=${startDate}&end_date=${endDate}&limit=20`),
+                fetch(`/performance/api/underperformers/?start_date=${startDate}&end_date=${endDate}&limit=20`)
+            ])
+            .then(responses => Promise.all(responses.map(r => r.json())))
+            .then(([topPerformers, underperformers]) => {
+                updatePerformersDisplay(topPerformers, underperformers);
+                updateMetrics(topPerformers, underperformers);
+            })
+            .catch(error => {
+                console.error('Error loading initial data:', error);
+                // Show error message in containers
+                document.getElementById('top-performers').innerHTML = '<div class="text-center p-4 text-muted">Error loading data. Please try again.</div>';
+                document.getElementById('underperformers').innerHTML = '<div class="text-center p-4 text-muted">Error loading data. Please try again.</div>';
+            });
+        }
+
+        function updateChartsWithData(performanceData) {
+            if (performanceData.success && performanceData.data.routes) {
+                const routes = performanceData.data.routes.slice(0, 20); // Top 20
+                const labels = routes.map(r => r.route_no);
+                const epkmValues = routes.map(r => r.avg_epkm || 0);
+                
+                // Update performance chart
+                if (performanceChart) {
+                    performanceChart.data.labels = labels;
+                    performanceChart.data.datasets[0].data = epkmValues;
+                    performanceChart.update();
+                }
+            }
+        }
+
+        function updatePerformersDisplay(topPerformers, underperformers) {
+            // Update top performers
+            if (topPerformers.success && topPerformers.data.top_performers) {
+                const topContainer = document.getElementById('top-performers');
+                topContainer.innerHTML = topPerformers.data.top_performers.slice(0, 20).map((route, index) => `
+                    <div class="performer-item">
+                        <div>
+                            <div class="performer-route">${index + 1}. Route ${route.route_no}</div>
+                            <div class="performer-details">₹${route.total_revenue?.toLocaleString() || 0} revenue • ${route.trip_count || 0} trips</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="performer-value text-success-custom">₹${route.avg_epkm || 0}</div>
+                            <div class="performer-label">EPKM</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Update underperformers (sort by EPKM ascending - lowest first)
+            if (underperformers.success && underperformers.data.underperformers) {
+                const underContainer = document.getElementById('underperformers');
+                const sortedUnderperformers = underperformers.data.underperformers
+                    .slice(0, 20)
+                    .sort((a, b) => (a.avg_epkm || 0) - (b.avg_epkm || 0)); // Sort ascending (lowest first)
+                
+                underContainer.innerHTML = sortedUnderperformers.map((route, index) => `
+                    <div class="performer-item">
+                        <div>
+                            <div class="performer-route">${index + 1}. Route ${route.route_no}</div>
+                            <div class="performer-details">₹${route.total_revenue?.toLocaleString() || 0} revenue • ${route.trip_count || 0} trips</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="performer-value text-danger-custom">₹${route.avg_epkm || 0}</div>
+                            <div class="performer-label">EPKM</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateMetrics(topPerformers, underperformers) {
+            // Calculate metrics from API data
+            let totalRoutes = 0;
+            let totalRevenue = 0;
+            let allEpkmValues = [];
+            let bestEpkm = 0;
+
+            // Process top performers data
+            if (topPerformers.success && topPerformers.data.top_performers) {
+                const topData = topPerformers.data.top_performers;
+                totalRoutes += topData.length;
+                topData.forEach(route => {
+                    totalRevenue += route.total_revenue || 0;
+                    if (route.avg_epkm) {
+                        allEpkmValues.push(route.avg_epkm);
+                        bestEpkm = Math.max(bestEpkm, route.avg_epkm);
+                    }
+                });
+            }
+
+            // Process underperformers data
+            if (underperformers.success && underperformers.data.underperformers) {
+                const underData = underperformers.data.underperformers;
+                totalRoutes += underData.length;
+                underData.forEach(route => {
+                    totalRevenue += route.total_revenue || 0;
+                    if (route.avg_epkm) {
+                        allEpkmValues.push(route.avg_epkm);
+                    }
+                });
+            }
+
+            // Calculate average EPKM
+            const avgEpkm = allEpkmValues.length > 0 ? 
+                (allEpkmValues.reduce((sum, val) => sum + val, 0) / allEpkmValues.length).toFixed(2) : 0;
+
+            // Update metric displays
+            document.getElementById('avg-epkm').textContent = `₹${avgEpkm}`;
+            document.getElementById('total-routes').textContent = totalRoutes;
+            document.getElementById('total-revenue').textContent = `₹${(totalRevenue / 1000000).toFixed(1)}M`;
+            document.getElementById('best-epkm').textContent = `₹${bestEpkm.toFixed(2)}`;
+        }
+
+        // Add intersection observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-slide-up');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for animation
+        document.querySelectorAll('.glass-card, .chart-card, .performer-card, .filter-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

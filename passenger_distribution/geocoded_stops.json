@@ -4154,5 +4154,41 @@
     "Enakulam": {
         "latitude": 9.211338600000001,
         "longitude": 76.48957352476214
+    },
+    "Veliyannoor": {
+        "latitude": 9.8296182,
+        "longitude": 76.6073889
+    },
+    "Madavoor": {
+        "latitude": 8.8116454,
+        "longitude": 76.820591
+    },
+    "Arangamukal": {
+        "latitude": 8.4061228,
+        "longitude": 77.0518691
+    },
+    "Chumaduthangi": {
+        "latitude": 9.6933504,
+        "longitude": 76.5599505
+    },
+    "Punnakad": {
+        "latitude": 9.3106213,
+        "longitude": 76.7118079
+    },
+    "Mukkunnam": {
+        "latitude": 8.8050539,
+        "longitude": 76.9257424
+    },
+    "Attoor": {
+        "latitude": 8.3255753,
+        "longitude": 77.2573325
+    },
+    "Anacode": {
+        "latitude": 9.9709554,
+        "longitude": 76.444744
+    },
+    "Vengapotta": {
+        "latitude": 8.3673776,
+        "longitude": 77.0350299
     }
 }

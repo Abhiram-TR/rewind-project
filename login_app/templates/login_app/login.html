@@ -76,7 +76,14 @@
                         </form>
                     </div>
                     <div class="card-footer">
-                        <p class="mb-0">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+                        <p class="mb-0">Don't have an account? <a href="{% url 'login_app:register' %}">Register here</a></p>
+                        <hr class="my-3">
+                        <div class="text-center">
+                            <p class="small mb-2">Depot Staff?</p>
+                            <a href="/depot/login/" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-warehouse me-2"></i>Depot Portal Login
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

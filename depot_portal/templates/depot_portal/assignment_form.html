@@ -1,0 +1,1052 @@
+{% extends 'depot_portal/base.html' %}
+
+{% block title %}{{ action }} Assignment - KSRTC Depot Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container-fluid {
+        padding: 0;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .main-wrapper {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        margin: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 24px 32px;
+        border-radius: 20px;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(30, 60, 114, 0.3);
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
+        opacity: 0.1;
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        letter-spacing: -0.02em;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+        margin-top: 8px;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .breadcrumb-section {
+        background: white;
+        padding: 20px 32px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .breadcrumb-modern {
+        background: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .breadcrumb-modern .breadcrumb-item {
+        font-weight: 500;
+    }
+
+    .breadcrumb-modern .breadcrumb-item + .breadcrumb-item::before {
+        content: "→";
+        color: #6b7280;
+        font-weight: bold;
+    }
+
+    .breadcrumb-modern .breadcrumb-item a {
+        color: #4f46e5;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .breadcrumb-modern .breadcrumb-item a:hover {
+        color: #3730a3;
+    }
+
+    .breadcrumb-modern .breadcrumb-item.active {
+        color: #6b7280;
+    }
+
+    .form-container {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 32px;
+        margin-top: 20px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .form-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 24px 32px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .form-body {
+        padding: 32px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .form-label .required {
+        color: #ef4444;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #f9fafb;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        background: white;
+        transform: translateY(-1px);
+    }
+
+    .form-control.is-invalid {
+        border-color: #ef4444;
+        background: #fef2f2;
+    }
+
+    .form-control.is-invalid:focus {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+    }
+
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 6px;
+        font-weight: 500;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: flex-end;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 2px solid transparent;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(107, 114, 128, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-secondary:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+    }
+
+    .schedule-info-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+    }
+
+    .schedule-info-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 20px 24px;
+        border-bottom: 1px solid #e2e8f0;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .schedule-info-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .schedule-info-body {
+        padding: 24px;
+    }
+
+    .schedule-info-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .schedule-info-item:last-child {
+        border-bottom: none;
+    }
+
+    .schedule-info-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    .schedule-info-content {
+        flex: 1;
+    }
+
+    .schedule-info-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.9rem;
+    }
+
+    .schedule-info-text {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-top: 2px;
+    }
+
+    .alert-error {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        border: 1px solid #ef4444;
+        color: #991b1b;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+    }
+
+    .loading-indicator {
+        display: none;
+        padding: 8px 16px;
+        background: #f3f4f6;
+        border-radius: 8px;
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-top: 8px;
+    }
+
+    .loading-indicator.show {
+        display: block;
+    }
+
+    .selected-trips-container {
+        min-height: 80px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        background: #f9fafb;
+        margin-top: 8px;
+    }
+
+    .empty-trips-message {
+        text-align: center;
+        color: #6b7280;
+        font-style: italic;
+        padding: 20px;
+    }
+
+    .trip-route-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .trip-route-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .trip-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .trip-badge {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .route-badge {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        min-width: 80px;
+        text-align: center;
+    }
+
+    .trip-route-item.loading .route-badge {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .remove-trip {
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.8rem;
+    }
+
+    .remove-trip:hover {
+        background: #dc2626;
+        transform: scale(1.1);
+    }
+
+    #trip-selector {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 8px;
+        font-size: 0.95rem;
+    }
+
+    #trip-selector:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+
+    #trip-selector option {
+        padding: 8px;
+        margin: 2px 0;
+    }
+
+    #trip-selector option:hover {
+        background-color: #f3f4f6;
+    }
+
+    @media (max-width: 768px) {
+        .main-wrapper {
+            margin: 10px;
+            padding: 20px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+
+        .form-container {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .schedule-info-card {
+            position: static;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="main-wrapper">
+        <!-- Modern Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-title">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        {{ action }} Assignment
+                    </h1>
+                    <p class="page-subtitle">Manage schedule assignments for employees</p>
+                </div>
+                <div>
+                    <a href="{% url 'depot_portal:assignment_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Back
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-section">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb breadcrumb-modern">
+                    <li class="breadcrumb-item"><a href="{% url 'depot_portal:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'depot_portal:assignment_list' %}">Assignments</a></li>
+                    <li class="breadcrumb-item active">{{ action }} Assignment</li>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Form Container -->
+        <div class="form-container">
+            <div class="form-card">
+                <div class="form-header">
+                    <h3 class="form-title">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        {{ action }} Schedule Assignment
+                    </h3>
+                </div>
+                <div class="form-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.employee.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user me-2"></i>Employee <span class="required">*</span>
+                                    </label>
+                                    {{ form.employee }}
+                                    {% if form.employee.errors %}
+                                        <div class="error-message">
+                                            {{ form.employee.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.date.id_for_label }}" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>Date <span class="required">*</span>
+                                    </label>
+                                    {{ form.date }}
+                                    {% if form.date.errors %}
+                                        <div class="error-message">
+                                            {{ form.date.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.schedule_no.id_for_label }}" class="form-label">
+                                        <i class="fas fa-clock me-2"></i>Schedule No <span class="required">*</span>
+                                    </label>
+                                    {{ form.schedule_no }}
+                                    {% if form.schedule_no.errors %}
+                                        <div class="error-message">
+                                            {{ form.schedule_no.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="loading-indicator" id="schedule-loading">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Loading schedules...
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.trip_no.id_for_label }}" class="form-label">
+                                        <i class="fas fa-route me-2"></i>Trip No <span class="required">*</span>
+                                        <span id="trip-count-display" style="color: #10b981; font-weight: bold; margin-left: 10px;"></span>
+                                    </label>
+                                    <select class="form-control" id="trip-selector" multiple style="height: 120px; border: 2px solid #e5e7eb;">
+                                        <option value="">Select Trips (Click multiple options)</option>
+                                    </select>
+                                    <div style="display: none;">{{ form.trip_no }}</div>
+                                    {% if form.trip_no.errors %}
+                                        <div class="error-message">
+                                            {{ form.trip_no.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="loading-indicator" id="trip-loading">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Loading trips...
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.route_no.id_for_label }}" class="form-label">
+                                        <i class="fas fa-map-marked-alt me-2"></i>Route No <span class="required">*</span>
+                                    </label>
+                                    <div style="display: none;">{{ form.route_no }}</div>
+                                    <div class="route-display" id="route-display">
+                                        <input type="text" class="form-control" id="route-display-field" readonly style="background-color: #f8f9fa; border: 2px solid #e5e7eb;" placeholder="Route will appear here">
+                                    </div>
+                                    {% if form.route_no.errors %}
+                                        <div class="error-message">
+                                            {{ form.route_no.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="loading-indicator" id="route-loading">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Loading route...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Selected Trips and Routes Display -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-list me-2"></i>Selected Trips & Routes
+                            </label>
+                            <div id="selected-trips-display" class="selected-trips-container">
+                                <div class="empty-trips-message">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Select a schedule and trips to see routes here
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                <i class="fas fa-sticky-note me-2"></i>Notes
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="error-message">
+                                    {{ form.notes.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert-error">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="form-actions">
+                            <a href="{% url 'depot_portal:assignment_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submit-btn">
+                                <i class="fas fa-save"></i> {{ action }} Assignment<span id="trip-count-indicator"></span>
+                            </button>
+                        </div>
+                        
+                        <!-- Hidden fields for multiple trips -->
+                        <div id="multiple-trips-data" style="display: none;"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Schedule Info Card -->
+            <div class="schedule-info-card">
+                <div class="schedule-info-header">
+                    <h4 class="schedule-info-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Assignment Guidelines
+                    </h4>
+                </div>
+                <div class="schedule-info-body">
+                    <div class="schedule-info-item">
+                        <div class="schedule-info-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="schedule-info-content">
+                            <div class="schedule-info-label">Employee Selection</div>
+                            <div class="schedule-info-text">Choose active employee for assignment</div>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-info-item">
+                        <div class="schedule-info-icon">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <div class="schedule-info-content">
+                            <div class="schedule-info-label">Assignment Date</div>
+                            <div class="schedule-info-text">Select the operational date</div>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-info-item">
+                        <div class="schedule-info-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="schedule-info-content">
+                            <div class="schedule-info-label">Schedule Number</div>
+                            <div class="schedule-info-text">Unique identifier for the schedule</div>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-info-item">
+                        <div class="schedule-info-icon">
+                            <i class="fas fa-route"></i>
+                        </div>
+                        <div class="schedule-info-content">
+                            <div class="schedule-info-label">Route Auto-Population</div>
+                            <div class="schedule-info-text">Route automatically filled based on schedule + trip</div>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-info-item">
+                        <div class="schedule-info-icon">
+                            <i class="fas fa-list-ol"></i>
+                        </div>
+                        <div class="schedule-info-content">
+                            <div class="schedule-info-label">Multiple Trip Selection</div>
+                            <div class="schedule-info-text">Select multiple trips - each creates a separate assignment</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// AJAX for dynamic schedule loading with loading indicators
+document.addEventListener('DOMContentLoaded', function() {
+    const scheduleSelect = document.getElementById('id_schedule_no');
+    const tripSelect = document.getElementById('id_trip_no');
+    const routeSelect = document.getElementById('id_route_no');
+    const tripSelector = document.getElementById('trip-selector');
+    const scheduleLoading = document.getElementById('schedule-loading');
+    const tripLoading = document.getElementById('trip-loading');
+    const routeLoading = document.getElementById('route-loading');
+    const selectedTripsDisplay = document.getElementById('selected-trips-display');
+    
+    let scheduleData = [];
+    let selectedTrips = new Set();
+    
+    function showLoading(element) {
+        element.classList.add('show');
+    }
+    
+    function hideLoading(element) {
+        element.classList.remove('show');
+    }
+    
+    function updateRelatedFields() {
+        showLoading(tripLoading);
+        
+        return fetch('{% url "depot_portal:get_schedules_ajax" %}')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Schedule data received:', data);
+                scheduleData = data;
+                const selectedSchedule = scheduleSelect.value;
+                console.log('Selected schedule:', selectedSchedule);
+                
+                // Update trip options based on selected schedule
+                if (selectedSchedule) {
+                    const relevantTrips = data.filter(item => item.schedule_no === selectedSchedule);
+                    tripSelector.innerHTML = '<option value="">Select Trips (Hold Ctrl/Cmd for multiple)</option>';
+                    [...new Set(relevantTrips.map(item => item.trip_no))].forEach(trip => {
+                        tripSelector.innerHTML += `<option value="${trip}">Trip ${trip}</option>`;
+                    });
+                    
+                    // Only clear selected trips if this is not an edit initialization
+                    if (!window.isEditInitialization) {
+                        selectedTrips.clear();
+                        updateSelectedTripsDisplay();
+                    }
+                }
+                
+                hideLoading(tripLoading);
+                return data;
+            })
+            .catch(error => {
+                console.error('Error fetching schedule data:', error);
+                hideLoading(tripLoading);
+                throw error;
+            });
+    }
+    
+    function updateSelectedTripsDisplay() {
+        console.log('updateSelectedTripsDisplay called, selectedTrips.size:', selectedTrips.size);
+        console.log('selectedTrips contents:', Array.from(selectedTrips));
+        
+        if (selectedTrips.size === 0) {
+            selectedTripsDisplay.innerHTML = `
+                <div class="empty-trips-message">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Select a schedule and trips to see routes here
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        selectedTrips.forEach(trip => {
+            const route = getRouteForTrip(trip);
+            html += `
+                <div class="trip-route-item" data-trip="${trip}">
+                    <div class="trip-info">
+                        <span class="trip-badge">Trip ${trip}</span>
+                        <i class="fas fa-arrow-right" style="color: #6b7280;"></i>
+                        <span class="route-badge">${route || 'Loading...'}</span>
+                    </div>
+                    <button type="button" class="remove-trip" onclick="removeTrip('${trip}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        });
+        
+        selectedTripsDisplay.innerHTML = html;
+        updateFormFields();
+    }
+    
+    function getRouteForTrip(trip) {
+        const selectedSchedule = scheduleSelect.value;
+        console.log(`Getting route for trip ${trip}, schedule: ${selectedSchedule}`);
+        console.log('Available schedule data:', scheduleData.length, 'items');
+        
+        const matchingRoutes = scheduleData.filter(item => 
+            item.schedule_no === selectedSchedule && item.trip_no == trip
+        );
+        console.log('Matching routes found:', matchingRoutes);
+        
+        const route = matchingRoutes.length > 0 ? matchingRoutes[0].route_no : null;
+        console.log(`Route for trip ${trip}:`, route);
+        return route;
+    }
+    
+    function addTrip(trip) {
+        selectedTrips.add(trip);
+        updateSelectedTripsDisplay();
+    }
+    
+    function removeTrip(trip) {
+        selectedTrips.delete(trip);
+        updateSelectedTripsDisplay();
+        
+        // Update trip selector to reflect removal
+        const option = tripSelector.querySelector(`option[value="${trip}"]`);
+        if (option) {
+            option.selected = false;
+        }
+    }
+    
+    function updateFormFields() {
+        // Update the original trip field with first selected trip (for form submission)
+        const tripsArray = Array.from(selectedTrips);
+        if (tripsArray.length > 0) {
+            tripSelect.value = tripsArray[0];
+            const route = getRouteForTrip(tripsArray[0]);
+            if (route) {
+                setRouteValue(route);
+                showRouteDisplay(route);
+            }
+            
+            // Update submit button text to show multiple trips
+            updateSubmitButton(tripsArray.length);
+            
+            // Prepare multiple trips data
+            prepareMultipleTripsData(tripsArray);
+        } else {
+            tripSelect.value = '';
+            clearRouteDisplay();
+            updateSubmitButton(0);
+        }
+    }
+    
+    function updateSubmitButton(tripCount) {
+        const submitBtn = document.getElementById('submit-btn');
+        
+        if (submitBtn) {
+            if (tripCount > 1) {
+                submitBtn.innerHTML = `<i class="fas fa-save"></i> {{ action }} ${tripCount} Assignments`;
+            } else {
+                submitBtn.innerHTML = `<i class="fas fa-save"></i> {{ action }} Assignment`;
+            }
+        }
+    }
+    
+    function prepareMultipleTripsData(tripsArray) {
+        const multipleTripsContainer = document.getElementById('multiple-trips-data');
+        multipleTripsContainer.innerHTML = '';
+        
+        console.log('Preparing multiple trips data for:', tripsArray);
+        console.log('trips array length:', tripsArray.length);
+        
+        // ALWAYS clear and recreate all hidden inputs
+        tripsArray.forEach((trip, index) => {
+            const route = getRouteForTrip(trip);
+            console.log(`Creating hidden inputs for Trip ${index}: ${trip}, Route: ${route}`);
+            
+            // Create hidden input for each trip
+            const tripInput = document.createElement('input');
+            tripInput.type = 'hidden';
+            tripInput.name = `trip_${index}`;
+            tripInput.value = trip;
+            multipleTripsContainer.appendChild(tripInput);
+            
+            // Create hidden input for each route
+            const routeInput = document.createElement('input');
+            routeInput.type = 'hidden';
+            routeInput.name = `route_${index}`;
+            routeInput.value = route || '';
+            multipleTripsContainer.appendChild(routeInput);
+        });
+        
+        // Add count of trips - THIS IS CRITICAL
+        const countInput = document.createElement('input');
+        countInput.type = 'hidden';
+        countInput.name = 'trip_count';
+        countInput.value = tripsArray.length;
+        multipleTripsContainer.appendChild(countInput);
+        
+        console.log('Multiple trips prepared:', tripsArray.length, 'trips');
+    }
+    
+    function setRouteValue(route) {
+        // Set the hidden route field value
+        routeSelect.value = route;
+        
+        // Create option if it doesn't exist
+        const existingOption = Array.from(routeSelect.options).find(opt => opt.value === route);
+        if (!existingOption) {
+            const option = document.createElement('option');
+            option.value = route;
+            option.text = route;
+            option.selected = true;
+            routeSelect.appendChild(option);
+        } else {
+            existingOption.selected = true;
+        }
+    }
+    
+    function showRouteDisplay(route) {
+        const routeDisplayField = document.getElementById('route-display-field');
+        routeDisplayField.value = route;
+    }
+    
+    function clearRouteDisplay() {
+        const routeDisplayField = document.getElementById('route-display-field');
+        routeDisplayField.value = '';
+        routeSelect.value = '';
+    }
+    
+    if (scheduleSelect && tripSelect && routeSelect && tripSelector) {
+        scheduleSelect.addEventListener('change', updateRelatedFields);
+        
+        // Add event listener for multiple trip selection
+        tripSelector.addEventListener('change', function() {
+            const selectedOptions = Array.from(this.selectedOptions);
+            selectedTrips.clear();
+            
+            console.log('Trip selector changed. Selected options:', selectedOptions.map(o => o.value));
+            
+            selectedOptions.forEach(option => {
+                if (option.value) {
+                    selectedTrips.add(option.value);
+                }
+            });
+            
+            console.log('Selected trips set:', Array.from(selectedTrips));
+            
+            // Update trip count display
+            const tripCountDisplay = document.getElementById('trip-count-display');
+            if (selectedTrips.size > 0) {
+                tripCountDisplay.textContent = `(${selectedTrips.size} trips selected)`;
+                tripSelector.style.borderColor = '#10b981';
+            } else {
+                tripCountDisplay.textContent = '';
+                tripSelector.style.borderColor = '#e5e7eb';
+            }
+            
+            updateSelectedTripsDisplay();
+        });
+        
+        // Initialize on page load
+        initializeFormForEdit();
+    }
+    
+    function initializeFormForEdit() {
+        // Check if we have existing values (edit mode)
+        const existingSchedule = scheduleSelect.value;
+        const existingTrip = tripSelect.value;
+        
+        if (existingSchedule) {
+            // Set flag to prevent clearing selections during initialization
+            window.isEditInitialization = true;
+            
+            // Load trips for existing schedule
+            updateRelatedFields().then(() => {
+                // After trips are loaded, select the existing trip
+                if (existingTrip) {
+                    // Set the trip in the multi-selector
+                    setTimeout(() => {
+                        const tripOption = tripSelector.querySelector(`option[value="${existingTrip}"]`);
+                        if (tripOption) {
+                            tripOption.selected = true;
+                            selectedTrips.add(existingTrip);
+                        }
+                        
+                        // Update the display
+                        updateSelectedTripsDisplay();
+                        
+                        // Reset flag
+                        window.isEditInitialization = false;
+                    }, 100);
+                } else {
+                    window.isEditInitialization = false;
+                }
+            }).catch(() => {
+                window.isEditInitialization = false;
+            });
+        } else {
+            updateSelectedTripsDisplay();
+        }
+    }
+    
+    // Make removeTrip function globally accessible
+    window.removeTrip = removeTrip;
+    
+    
+    // Add form submit debugging
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form being submitted...');
+            console.log('Selected trips:', Array.from(selectedTrips));
+            
+            const formData = new FormData(form);
+            const formDataObj = {};
+            for (let [key, value] of formData.entries()) {
+                formDataObj[key] = value;
+                console.log(`${key}: ${value}`);
+            }
+            
+            // Optional: Show alert with form data for debugging (comment out for production)
+            // alert('Form Data Being Submitted:\n' + JSON.stringify(formDataObj, null, 2));
+        });
+    }
+
+    // Add Bootstrap classes to form controls
+    const formControls = document.querySelectorAll('select, input[type="text"], input[type="date"], input[type="time"], textarea');
+    formControls.forEach(control => {
+        control.classList.add('form-control');
+        
+        // Add error styling if there are errors
+        const errorDiv = control.parentNode.querySelector('.error-message');
+        if (errorDiv) {
+            control.classList.add('is-invalid');
+        }
+    });
+});
+</script>
+{% endblock %}

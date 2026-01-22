@@ -31,5 +31,9 @@ urlpatterns = [
     path('pred/', include('pred.urls')),
     path('tracker/', include('tracker.urls')),
     path('route/', include('bus_route.urls')),
+    path('analyzer/', include('analyzer.urls')),
+    path('performance/', include('route_performance.urls')),
+    path('depot/', include('depot_portal.urls')),
+    path('office/', include('main_office.urls')),
     
 ]

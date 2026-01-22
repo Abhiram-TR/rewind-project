@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSRTC Data Analysis Dashboard - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'login.css' %}">
+</head>
+<body>
+    <!-- Header with Logo -->
+    <header class="header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="logo-container">
+                        <img src="{% static 'image.png' %}" alt="KSRTC Logo" class="logo">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-menu">
+        <div class="container">
+            <ul>
+                <li><a href="#"><i class="fas fa-home me-2"></i>Home</a></li>
+                <li><a href="#"><i class="fas fa-info-circle me-2"></i>About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Banner Section -->
+    <div class="banner">
+        <div class="container">
+            <h2>Welcome</h2>
+            <h1>KSRTC Data Analysis Dashboard</h1>
+        </div>
+       
+    </div>
+
+    <!-- Login Form -->
+    <div class="container flex-grow-1">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card login-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-sign-in-alt me-2"></i>Login to Your Account</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="id_username">Username:</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-user"></i>
+                                    {{ form.username.as_widget }}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="id_password">Password:</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock"></i>
+                                    {{ form.password.as_widget }}
+                                </div>
+                            </div>
+                           
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-login">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer">
+                        <p class="mb-0">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Kerala State Road Transport Corporation. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add input-with-icon class to form inputs
+            const inputs = document.querySelectorAll('.input-wrapper input');
+            inputs.forEach(input => {
+                input.classList.add('input-with-icon');
+                
+                // Add event listeners to hide/show icons on focus/blur
+                input.addEventListener('focus', function() {
+                    // Find the icon in the same wrapper and hide it
+                    const icon = this.parentElement.querySelector('i');
+                    if (icon) {
+                        icon.style.display = 'none';
+                    }
+                    // Remove left padding when icon is hidden
+                    this.style.paddingLeft = '15px';
+                });
+                
+                input.addEventListener('blur', function() {
+                    // Only show the icon again if the input is empty
+                    if (this.value === '') {
+                        const icon = this.parentElement.querySelector('i');
+                        if (icon) {
+                            icon.style.display = 'block';
+                        }
+                        // Restore padding for icon
+                        this.style.paddingLeft = '40px';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
